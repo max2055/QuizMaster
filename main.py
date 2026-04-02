@@ -39,9 +39,9 @@ def main():
     
     # 创建应用
     app = QApplication(sys.argv)
-    app.setApplicationName("QuizMaster")
-    app.setApplicationVersion("1.0.0")
-    app.setOrganizationName("QuizMaster")
+    app.setApplicationName("逢考必过")
+    app.setApplicationVersion("1.5.0")
+    app.setOrganizationName("逢考必过")
 
     # 加载全局样式表
     from pathlib import Path

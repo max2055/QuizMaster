@@ -11,10 +11,10 @@ block_cipher = None
 if sys.platform == 'darwin':
     info_plist_dict = {
         "NSRequiresAquaSystemAppearance": True,
-        "CFBundleName": "QuizMaster",
-        "CFBundleDisplayName": "QuizMaster",
-        "CFBundleVersion": "1.0.3",
-        "CFBundleShortVersionString": "1.0.3",
+        "CFBundleName": "逢考必过",
+        "CFBundleDisplayName": "逢考必过",
+        "CFBundleVersion": "1.5.0",
+        "CFBundleShortVersionString": "1.5.0",
         "NSHighResolutionCapable": True,
     }
 else:
@@ -52,7 +52,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='QuizMaster',
+    name='逢考必过',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

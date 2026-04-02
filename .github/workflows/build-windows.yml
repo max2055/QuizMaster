@@ -1,4 +1,4 @@
-# GitHub Actions Workflow for QuizMaster Windows Build
+# GitHub Actions Workflow for 逢考必过 Windows Build
 # 自动打包 Windows 可执行程序
 
 name: Build Windows Executable
@@ -30,29 +30,29 @@ jobs:
 
     - name: 打包应用程序
       run: |
-        pyinstaller --clean QuizMaster.spec
+        pyinstaller --clean 逢考必过.spec
 
     - name: 准备分发文件
       run: |
-        mkdir QuizMaster_分发版
-        copy dist\QuizMaster.exe QuizMaster_分发版\
-        copy quizmaster.db QuizMaster_分发版\
-        copy README_用户说明.txt QuizMaster_分发版\
+        mkdir 逢考必过_分发版
+        copy dist\逢考必过.exe 逢考必过_分发版\
+        copy quizmaster.db 逢考必过_分发版\
+        copy README_用户说明.txt 逢考必过_分发版\
 
     - name: 压缩打包结果
       run: |
-        Compress-Archive -Path QuizMaster_分发版\* -DestinationPath QuizMaster.zip
+        Compress-Archive -Path 逢考必过_分发版\* -DestinationPath 逢考必过.zip
 
     - name: 上传构建产物
       uses: actions/upload-artifact@v4
       with:
-        name: QuizMaster-Windows
-        path: QuizMaster.zip
+        name: 逢考必过-Windows
+        path: 逢考必过.zip
 
     - name: 创建 GitHub Release (仅标签推送时)
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
-        files: QuizMaster.zip
+        files: 逢考必过.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
