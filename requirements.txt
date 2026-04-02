@@ -1,0 +1,12 @@
+# QuizMaster 依赖包
+# Python 3.9+
+
+# GUI 框架
+PyQt6>=6.4.0
+
+# 数据处理
+pandas>=1.5.0
+openpyxl>=3.0.0  # Excel 读写
+
+# Word 文档处理
+python-docx>=0.8.11
