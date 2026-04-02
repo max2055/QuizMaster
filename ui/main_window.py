@@ -50,7 +50,7 @@ class MainWindow(QMainWindow):
     
     def _init_ui(self):
         """初始化用户界面"""
-        self.setWindowTitle("逢考必过 - 题库刷题工具")
+        self.setWindowTitle("QuizMaster - 逢考必过")
         self.setMinimumSize(900, 650)
         self.resize(1200, 800)
 
@@ -718,8 +718,8 @@ class MainWindow(QMainWindow):
     def _show_about(self):
         """显示关于对话框"""
         QMessageBox.about(
-            self, "关于 逢考必过",
-            "<h2>逢考必过 刷题工具</h2>"
+            self, "关于 QuizMaster",
+            "<h2>QuizMaster - 逢考必过</h2>"
             "<p>版本：1.5.0</p>"
             "<p>一款高效的题库管理和刷题工具</p>"
             "<p>技术栈：Python + PyQt6 + SQLite</p>"
