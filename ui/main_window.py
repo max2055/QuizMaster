@@ -720,7 +720,7 @@ class MainWindow(QMainWindow):
         QMessageBox.about(
             self, "关于 QuizMaster",
             "<h2>QuizMaster - 逢考必过</h2>"
-            "<p>版本：1.5.1</p>"
+            "<p>版本：1.5.2</p>"
             "<p>一款高效的题库管理和刷题工具</p>"
             "<p>技术栈：Python + PyQt6 + SQLite</p>"
             "<p>© 2026</p>"
