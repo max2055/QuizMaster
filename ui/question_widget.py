@@ -2089,5 +2089,5 @@ class QuestionWidget(QWidget):
             return False
 
     def _update_time(self):
-        self.elapsed_time += 1
-        self.time_label.setText(f"用时：{self.elapsed_time}s")
+        # 用时统计已移除，避免给用户造成压力
+        pass
