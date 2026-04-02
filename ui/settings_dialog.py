@@ -22,7 +22,10 @@ class SettingsDialog(QDialog):
             'remember_window_size': True,
             'questions_per_session': 50,
             'continue_last_session': False,
-            'start_from_question': 1,
+            'start_from_question_single': 1,      # 单选题起始题号
+            'start_from_question_multi': 1,      # 多选题起始题号
+            'start_from_question_judge': 1,      # 判断题起始题号
+            'start_from_question_fill': 1,       # 填空题起始题号
         }
 
         self.setWindowTitle("设置")
@@ -260,48 +263,90 @@ class SettingsDialog(QDialog):
         self.continue_session_cb = self._create_check_box("启动时继续上次刷题进度", self.settings.get('continue_last_session', False))
         layout.addWidget(self.continue_session_cb)
 
-        # 起始题号设置 - 紧凑布局
-        start_widget = QWidget()
-        start_layout = QHBoxLayout(start_widget)
-        start_layout.setContentsMargins(20, 0, 0, 0)
-        start_layout.setSpacing(8)
+        # 起始题号设置 - 按题型分别设置
+        self._create_start_question_settings(layout)
 
-        start_label = QLabel("起始：")
-        start_label.setStyleSheet("color: #5F6368; font-size: 12px;")
-        start_layout.addWidget(start_label)
+    def _create_start_question_settings(self, layout):
+        """创建各题型起始题号设置"""
+        # 单选题
+        single_widget = QWidget()
+        single_layout = QHBoxLayout(single_widget)
+        single_layout.setContentsMargins(20, 0, 0, 0)
+        single_layout.setSpacing(8)
+        single_label = QLabel("单选：")
+        single_label.setStyleSheet("color: #5F6368; font-size: 12px;")
+        single_layout.addWidget(single_label)
+        self.start_spin_single = QSpinBox()
+        self.start_spin_single.setRange(1, 1000)
+        self.start_spin_single.setSingleStep(1)
+        self.start_spin_single.setValue(self.settings.get('start_from_question_single', 1))
+        self.start_spin_single.setSuffix("题")
+        self.start_spin_single.setFixedWidth(80)
+        self.start_spin_single.setMinimumHeight(26)
+        self._apply_spin_style(self.start_spin_single)
+        single_layout.addWidget(self.start_spin_single)
+        single_layout.addStretch()
+        layout.addWidget(single_widget)
 
-        self.start_spin = QSpinBox()
-        self.start_spin.setRange(1, 1000)
-        self.start_spin.setSingleStep(1)
-        self.start_spin.setValue(self.settings.get('start_from_question', 1))
-        self.start_spin.setSuffix("题")
-        self.start_spin.setFixedWidth(80)
-        self.start_spin.setMinimumHeight(26)
-        self.start_spin.setStyleSheet("""
-            QSpinBox {
-                border: 1px solid #DADCE0;
-                border-radius: 4px;
-                padding: 4px 6px;
-                background-color: #FFFFFF;
-                font-size: 11px;
-                color: #3C4043;
-            }
-            QSpinBox:focus {
-                border-color: #1A73E8;
-            }
-            QSpinBox::up-button, QSpinBox::down-button {
-                border: none;
-                border-radius: 3px;
-                background-color: #F1F3F4;
-                width: 16px;
-            }
-            QSpinBox::up-button:hover, QSpinBox::down-button:hover {
-                background-color: #E8EAED;
-            }
-        """)
-        start_layout.addWidget(self.start_spin)
-        start_layout.addStretch()
-        layout.addWidget(start_widget)
+        # 多选题
+        multi_widget = QWidget()
+        multi_layout = QHBoxLayout(multi_widget)
+        multi_layout.setContentsMargins(20, 0, 0, 0)
+        multi_layout.setSpacing(8)
+        multi_label = QLabel("多选：")
+        multi_label.setStyleSheet("color: #5F6368; font-size: 12px;")
+        multi_layout.addWidget(multi_label)
+        self.start_spin_multi = QSpinBox()
+        self.start_spin_multi.setRange(1, 1000)
+        self.start_spin_multi.setSingleStep(1)
+        self.start_spin_multi.setValue(self.settings.get('start_from_question_multi', 1))
+        self.start_spin_multi.setSuffix("题")
+        self.start_spin_multi.setFixedWidth(80)
+        self.start_spin_multi.setMinimumHeight(26)
+        self._apply_spin_style(self.start_spin_multi)
+        multi_layout.addWidget(self.start_spin_multi)
+        multi_layout.addStretch()
+        layout.addWidget(multi_widget)
+
+        # 判断题
+        judge_widget = QWidget()
+        judge_layout = QHBoxLayout(judge_widget)
+        judge_layout.setContentsMargins(20, 0, 0, 0)
+        judge_layout.setSpacing(8)
+        judge_label = QLabel("判断：")
+        judge_label.setStyleSheet("color: #5F6368; font-size: 12px;")
+        judge_layout.addWidget(judge_label)
+        self.start_spin_judge = QSpinBox()
+        self.start_spin_judge.setRange(1, 1000)
+        self.start_spin_judge.setSingleStep(1)
+        self.start_spin_judge.setValue(self.settings.get('start_from_question_judge', 1))
+        self.start_spin_judge.setSuffix("题")
+        self.start_spin_judge.setFixedWidth(80)
+        self.start_spin_judge.setMinimumHeight(26)
+        self._apply_spin_style(self.start_spin_judge)
+        judge_layout.addWidget(self.start_spin_judge)
+        judge_layout.addStretch()
+        layout.addWidget(judge_widget)
+
+        # 填空题
+        fill_widget = QWidget()
+        fill_layout = QHBoxLayout(fill_widget)
+        fill_layout.setContentsMargins(20, 0, 0, 0)
+        fill_layout.setSpacing(8)
+        fill_label = QLabel("填空：")
+        fill_label.setStyleSheet("color: #5F6368; font-size: 12px;")
+        fill_layout.addWidget(fill_label)
+        self.start_spin_fill = QSpinBox()
+        self.start_spin_fill.setRange(1, 1000)
+        self.start_spin_fill.setSingleStep(1)
+        self.start_spin_fill.setValue(self.settings.get('start_from_question_fill', 1))
+        self.start_spin_fill.setSuffix("题")
+        self.start_spin_fill.setFixedWidth(80)
+        self.start_spin_fill.setMinimumHeight(26)
+        self._apply_spin_style(self.start_spin_fill)
+        fill_layout.addWidget(self.start_spin_fill)
+        fill_layout.addStretch()
+        layout.addWidget(fill_widget)
 
     def _create_display_settings(self, layout):
         """创建显示设置"""
@@ -360,5 +405,33 @@ class SettingsDialog(QDialog):
             'remember_window_size': self.remember_size_cb.isChecked(),
             'questions_per_session': self.quantity_spin.value(),
             'continue_last_session': self.continue_session_cb.isChecked(),
-            'start_from_question': self.start_spin.value(),
+            'start_from_question_single': self.start_spin_single.value(),
+            'start_from_question_multi': self.start_spin_multi.value(),
+            'start_from_question_judge': self.start_spin_judge.value(),
+            'start_from_question_fill': self.start_spin_fill.value(),
         }
+
+    def _apply_spin_style(self, spin: QSpinBox):
+        """应用 SpinBox 样式"""
+        spin.setStyleSheet("""
+            QSpinBox {
+                border: 1px solid #DADCE0;
+                border-radius: 4px;
+                padding: 4px 6px;
+                background-color: #FFFFFF;
+                font-size: 11px;
+                color: #3C4043;
+            }
+            QSpinBox:focus {
+                border-color: #1A73E8;
+            }
+            QSpinBox::up-button, QSpinBox::down-button {
+                border: none;
+                border-radius: 3px;
+                background-color: #F1F3F4;
+                width: 16px;
+            }
+            QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+                background-color: #E8EAED;
+            }
+        """)

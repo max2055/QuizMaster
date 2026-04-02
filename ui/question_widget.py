@@ -271,7 +271,10 @@ class QuestionWidget(QWidget):
             'remember_window_size': settings.value('remember_window_size', True, type=bool),
             'questions_per_session': settings.value('questions_per_session', 50, type=int),
             'continue_last_session': settings.value('continue_last_session', False, type=bool),
-            'start_from_question': settings.value('start_from_question', 1, type=int),
+            'start_from_question_single': settings.value('start_from_question_single', 1, type=int),
+            'start_from_question_multi': settings.value('start_from_question_multi', 1, type=int),
+            'start_from_question_judge': settings.value('start_from_question_judge', 1, type=int),
+            'start_from_question_fill': settings.value('start_from_question_fill', 1, type=int),
             'last_practice_offset': settings.value('last_practice_offset', 0, type=int),
             'last_practice_mode': settings.value('last_practice_mode', 'sequence', type=str),
         }
@@ -1296,8 +1299,15 @@ class QuestionWidget(QWidget):
                     for idx, q in enumerate(self.all_questions, start=1):
                         q.serial_number = idx
 
-                # 根据设置决定起始位置（支持自定义起始题号）
-                start_from = self.settings.get('start_from_question', 1)
+                # 根据设置决定起始位置（支持自定义起始题号，按题型区分）
+                start_type_map = {
+                    '单选': 'start_from_question_single',
+                    '多选': 'start_from_question_multi',
+                    '判断': 'start_from_question_judge',
+                    '填空': 'start_from_question_fill',
+                }
+                start_key = start_type_map.get(question_type_filter, 'start_from_question_single')
+                start_from = self.settings.get(start_key, 1)
                 if start_from > 1 and start_from <= len(self.all_questions):
                     self.current_offset = start_from - 1
                 else:
