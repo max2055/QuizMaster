@@ -25,7 +25,6 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-        ('resources', 'resources'),
         ('quizmaster.db', '.'),  # 包含数据库文件
     ],
     hiddenimports=[
@@ -66,6 +65,6 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='resources/icons/app.ico',
+    # icon='resources/icons/app.ico',  # 暂无图标
     info_plist=info_plist_dict,  # macOS 专用配置
 )
