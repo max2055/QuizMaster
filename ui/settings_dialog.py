@@ -22,6 +22,7 @@ class SettingsDialog(QDialog):
             'remember_window_size': True,
             'questions_per_session': 50,
             'continue_last_session': False,
+            'start_from_question': 1,
         }
 
         self.setWindowTitle("设置")
@@ -259,6 +260,49 @@ class SettingsDialog(QDialog):
         self.continue_session_cb = self._create_check_box("启动时继续上次刷题进度", self.settings.get('continue_last_session', False))
         layout.addWidget(self.continue_session_cb)
 
+        # 起始题号设置 - 紧凑布局
+        start_widget = QWidget()
+        start_layout = QHBoxLayout(start_widget)
+        start_layout.setContentsMargins(20, 0, 0, 0)
+        start_layout.setSpacing(8)
+
+        start_label = QLabel("起始：")
+        start_label.setStyleSheet("color: #5F6368; font-size: 12px;")
+        start_layout.addWidget(start_label)
+
+        self.start_spin = QSpinBox()
+        self.start_spin.setRange(1, 1000)
+        self.start_spin.setSingleStep(1)
+        self.start_spin.setValue(self.settings.get('start_from_question', 1))
+        self.start_spin.setSuffix("题")
+        self.start_spin.setFixedWidth(80)
+        self.start_spin.setMinimumHeight(26)
+        self.start_spin.setStyleSheet("""
+            QSpinBox {
+                border: 1px solid #DADCE0;
+                border-radius: 4px;
+                padding: 4px 6px;
+                background-color: #FFFFFF;
+                font-size: 11px;
+                color: #3C4043;
+            }
+            QSpinBox:focus {
+                border-color: #1A73E8;
+            }
+            QSpinBox::up-button, QSpinBox::down-button {
+                border: none;
+                border-radius: 3px;
+                background-color: #F1F3F4;
+                width: 16px;
+            }
+            QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+                background-color: #E8EAED;
+            }
+        """)
+        start_layout.addWidget(self.start_spin)
+        start_layout.addStretch()
+        layout.addWidget(start_widget)
+
     def _create_display_settings(self, layout):
         """创建显示设置"""
         self.show_answer_cb = self._create_check_box("提交后显示答案和解析", self.settings.get('show_answer_after_submit', True))
@@ -316,4 +360,5 @@ class SettingsDialog(QDialog):
             'remember_window_size': self.remember_size_cb.isChecked(),
             'questions_per_session': self.quantity_spin.value(),
             'continue_last_session': self.continue_session_cb.isChecked(),
+            'start_from_question': self.start_spin.value(),
         }

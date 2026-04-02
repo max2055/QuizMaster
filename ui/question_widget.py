@@ -271,6 +271,7 @@ class QuestionWidget(QWidget):
             'remember_window_size': settings.value('remember_window_size', True, type=bool),
             'questions_per_session': settings.value('questions_per_session', 50, type=int),
             'continue_last_session': settings.value('continue_last_session', False, type=bool),
+            'start_from_question': settings.value('start_from_question', 1, type=int),
             'last_practice_offset': settings.value('last_practice_offset', 0, type=int),
             'last_practice_mode': settings.value('last_practice_mode', 'sequence', type=str),
         }
@@ -866,10 +867,11 @@ class QuestionWidget(QWidget):
         self.accuracy_label.setStyleSheet(stat_card_style + "color: #3C4043;")
         stats_layout.addWidget(self.accuracy_label)
 
-        self.time_label = QLabel("用时：0s")
-        self.time_label.setFont(QFont("Arial", 12))
-        self.time_label.setStyleSheet(stat_card_style + "color: #3C4043;")
-        stats_layout.addWidget(self.time_label)
+        # 用时统计已移除，避免给用户造成压力
+        # self.time_label = QLabel("用时：0s")
+        # self.time_label.setFont(QFont("Arial", 12))
+        # self.time_label.setStyleSheet(stat_card_style + "color: #3C4043;")
+        # stats_layout.addWidget(self.time_label)
         stats_layout.addStretch()
         left_layout.addWidget(stats_widget)
 
@@ -1294,8 +1296,12 @@ class QuestionWidget(QWidget):
                     for idx, q in enumerate(self.all_questions, start=1):
                         q.serial_number = idx
 
-                # 重置偏移量 - 每次加载新分类或新题型时从第 1 题开始
-                self.current_offset = 0
+                # 根据设置决定起始位置（支持自定义起始题号）
+                start_from = self.settings.get('start_from_question', 1)
+                if start_from > 1 and start_from <= len(self.all_questions):
+                    self.current_offset = start_from - 1
+                else:
+                    self.current_offset = 0
 
                 # 截取当前批次
                 end_index = min(self.current_offset + self.questions_per_session, len(self.all_questions))
@@ -2013,42 +2019,62 @@ class QuestionWidget(QWidget):
             return False
 
     def _show_current_answer(self):
-        """显示当前题目答案"""
+        """显示当前题目答案 - 使用 QDialog 避免 Windows 弹窗闪烁"""
         if not self.current_question:
             return
 
-        from PyQt6.QtWidgets import QMessageBox
+        from PyQt6.QtWidgets import QDialog, QLabel, QVBoxLayout, QPushButton, QHBoxLayout
+        from PyQt6.QtCore import Qt
 
         serial = self.current_question.serial_number or (self.current_index + 1)
         answer = self.current_question.answer.upper()
         explanation = self.current_question.explanation or "无解析"
 
-        msg = QMessageBox(self)
-        msg.setWindowTitle(f"第{serial}题 答案")
-        # 使用 HTML 格式，正确答案和解析分行显示
-        msg.setText(f"""
-            <div style='line-height: 1.8;'>
-                <div style='font-weight: bold; font-size: 14px; margin-bottom: 8px;'>
-                    正确答案：{answer}
-                </div>
-                <div style='border-top: 1px solid #E0E0E0; padding-top: 8px;'>
-                    <span style='font-weight: bold; font-size: 14px;'>解析：</span>
-                    <span style='font-size: 13px; color: #5F6368;'>{explanation}</span>
-                </div>
-            </div>
-        """)
-        msg.setIcon(QMessageBox.Icon.Information)
-        msg.setStyleSheet("""
-            QMessageBox {
-                background-color: #FFFFFF;
-            }
-            QLabel {
-                color: #3C4043;
+        # 使用 QDialog 代替 QMessageBox 避免闪烁
+        dialog = QDialog(self)
+        dialog.setWindowTitle(f"第{serial}题 答案")
+        dialog.setMinimumSize(400, 200)
+        dialog.setModal(True)
+
+        layout = QVBoxLayout(dialog)
+        layout.setSpacing(15)
+        layout.setContentsMargins(20, 20, 20, 20)
+
+        # 答案标签
+        answer_label = QLabel(f"<b style='font-size: 15px; color: #1A73E8;'>正确答案：{answer}</b>")
+        answer_label.setStyleSheet("padding: 10px; background-color: #E8F0FE; border-radius: 6px;")
+        layout.addWidget(answer_label)
+
+        # 解析标签
+        explanation_label = QLabel(f"<b style='font-size: 14px;'>解析：</b><span style='font-size: 13px; color: #5F6368;'>{explanation}</span>")
+        explanation_label.setWordWrap(True)
+        explanation_label.setStyleSheet("padding: 10px; line-height: 1.6;")
+        layout.addWidget(explanation_label)
+
+        # 关闭按钮
+        close_btn = QPushButton("关闭")
+        close_btn.setFixedSize(100, 36)
+        close_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #1A73E8;
+                color: white;
+                border: none;
+                border-radius: 6px;
                 font-size: 13px;
-                padding: 8px;
+            }
+            QPushButton:hover {
+                background-color: #1557B0;
             }
         """)
-        msg.exec()
+        close_btn.clicked.connect(dialog.close)
+
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
+        btn_layout.addWidget(close_btn)
+        btn_layout.addStretch()
+        layout.addLayout(btn_layout)
+
+        dialog.exec()
 
     def _is_question_mastered(self, question_id: int) -> bool:
         """检查题目是否已掌握"""
