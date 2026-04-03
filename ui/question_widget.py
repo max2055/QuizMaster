@@ -478,7 +478,7 @@ class QuestionWidget(QWidget):
         # 题目内容 - 淡雅平面风格
         self.question_label = QLabel()
         self.question_label.setWordWrap(True)
-        self.question_label.setFont(QFont("Arial", 14, QFont.Weight.Medium))
+        self.question_label.setFont(QFont("Arial", 18, QFont.Weight.Medium))
         self.question_label.setObjectName("question_label")
         self.question_label.setStyleSheet("""
             QLabel#question_label {
@@ -513,9 +513,9 @@ class QuestionWidget(QWidget):
                 border: 1px solid #DADCE0;
                 border-radius: 8px;
                 color: #3C4043;
-                min-height: 40px;
+                min-height: 50px;
                 padding: 12px 14px;
-                font-size: 13px;
+                font-size: 16px;
             }
             QRadioButton:hover {
                 border-color: #1A73E8;
@@ -540,9 +540,9 @@ class QuestionWidget(QWidget):
                 border: 1px solid #DADCE0;
                 border-radius: 8px;
                 color: #3C4043;
-                min-height: 40px;
+                min-height: 50px;
                 padding: 12px 14px;
-                font-size: 13px;
+                font-size: 16px;
             }
             QCheckBox:hover {
                 border-color: #1A73E8;
@@ -1377,15 +1377,12 @@ class QuestionWidget(QWidget):
 
         # 检查是否已答题，如果有则显示确认对话框
         if self.user_answers:
-            from PyQt6.QtWidgets import QMessageBox
-            reply = QMessageBox.question(
-                self,
+            confirmed = self._show_confirmation_dialog(
                 "确认重新开始",
-                f"当前已有 {len(self.user_answers)} 道题的答案，重新开始将清空所有进度。\n\n确定要重新开始吗？",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+                f"当前已有 {len(self.user_answers)} 道题的答案，重新开始将清空所有进度。\n\n确定要重新开始吗？"
             )
 
-            if reply != QMessageBox.StandardButton.Yes:
+            if not confirmed:
                 return
 
         self._start_practice_internal()
@@ -1599,15 +1596,12 @@ class QuestionWidget(QWidget):
         if not self.current_question:
             return
 
-        from PyQt6.QtWidgets import QMessageBox
-
-        reply = QMessageBox.question(
-            self, "确认删除",
-            f"确定要删除这道题吗？",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        reply = self._show_confirmation_dialog(
+            "确认删除",
+            "确定要删除这道题吗？"
         )
 
-        if reply == QMessageBox.StandardButton.Yes:
+        if reply:
             self.question_service.delete_question(self.current_question.id)
             # 从列表中移除
             self.questions.pop(self.current_index)
@@ -1724,21 +1718,18 @@ class QuestionWidget(QWidget):
         """统一提交所有答案"""
         if not self.questions or self.session_submitted:
             return
-        
+
         # 检查是否全部作答
         unanswered = [i+1 for i in range(len(self.questions)) if i not in self.user_answers]
-        
-        msg = QMessageBox(self)
-        msg.setWindowTitle("确认提交")
-        
+
         if unanswered:
-            msg.setText(f"你还有 {len(unanswered)} 道题未作答，确定要提交吗？")
+            message = f"你还有 {len(unanswered)} 道题未作答，确定要提交吗？"
         else:
-            msg.setText("所有题目已作答，确定提交？")
-        
-        msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        
-        if msg.exec() == QMessageBox.StandardButton.Yes:
+            message = "所有题目已作答，确定提交？"
+
+        confirmed = self._show_confirmation_dialog("确认提交", message)
+
+        if confirmed:
             self._do_submit_all()
     
     def _do_submit_all(self):
@@ -1860,6 +1851,50 @@ class QuestionWidget(QWidget):
 
         self.result_frame.setVisible(True)
     
+    def _show_info_dialog(self, title: str, message: str):
+        """显示信息对话框 - 使用 QDialog 代替 QMessageBox 避免 Windows 闪烁"""
+        from PyQt6.QtWidgets import QDialog, QLabel, QPushButton, QHBoxLayout, QVBoxLayout
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle(title)
+        dialog.setModal(True)
+        dialog.setMinimumWidth(400)
+
+        layout = QVBoxLayout(dialog)
+        layout.setSpacing(15)
+        layout.setContentsMargins(20, 20, 20, 20)
+
+        # 消息标签
+        msg_label = QLabel(message)
+        msg_label.setWordWrap(True)
+        msg_label.setStyleSheet("padding: 10px; font-size: 14px; color: #3C4043;")
+        layout.addWidget(msg_label)
+
+        # 按钮布局
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
+
+        # 确定按钮
+        ok_btn = QPushButton("确定")
+        ok_btn.setFixedSize(100, 36)
+        ok_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #1A73E8;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-size: 13px;
+            }
+            QPushButton:hover {
+                background-color: #1557B0;
+            }
+        """)
+        ok_btn.clicked.connect(dialog.accept)
+        btn_layout.addWidget(ok_btn)
+
+        layout.addLayout(btn_layout)
+        dialog.exec()
+
     def _next_question(self):
         """下一题 - 支持加载下一批次"""
         if self.current_index < len(self.questions) - 1:
@@ -1873,7 +1908,7 @@ class QuestionWidget(QWidget):
                 self._load_next_batch(next_offset)
             else:
                 # 已经是最后一题
-                QMessageBox.information(self, "提示", "已经是最后一题了，点击提交答案结束练习")
+                self._show_info_dialog("提示", "已经是最后一题了，点击提交答案结束练习")
 
     def _load_next_batch(self, offset: int):
         """加载下一批题目"""
@@ -2027,6 +2062,70 @@ class QuestionWidget(QWidget):
         except Exception as e:
             print(f'检查掌握状态失败：{e}')
             return False
+
+    def _show_confirmation_dialog(self, title: str, message: str) -> bool:
+        """显示确认对话框 - 使用 QDialog 代替 QMessageBox 避免 Windows 闪烁"""
+        from PyQt6.QtWidgets import QDialog, QLabel, QPushButton, QHBoxLayout, QVBoxLayout
+        from PyQt6.QtCore import Qt
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle(title)
+        dialog.setModal(True)
+        dialog.setMinimumWidth(400)
+
+        layout = QVBoxLayout(dialog)
+        layout.setSpacing(15)
+        layout.setContentsMargins(20, 20, 20, 20)
+
+        # 消息标签
+        msg_label = QLabel(message)
+        msg_label.setWordWrap(True)
+        msg_label.setStyleSheet("padding: 10px; font-size: 14px; color: #3C4043;")
+        layout.addWidget(msg_label)
+
+        # 按钮布局
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
+
+        # 取消按钮
+        cancel_btn = QPushButton("取消")
+        cancel_btn.setFixedSize(100, 36)
+        cancel_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #F8F9FA;
+                color: #5F6368;
+                border: 1px solid #DADCE0;
+                border-radius: 6px;
+                font-size: 13px;
+            }
+            QPushButton:hover {
+                background-color: #F1F3F4;
+            }
+        """)
+        cancel_btn.clicked.connect(dialog.reject)
+        btn_layout.addWidget(cancel_btn)
+
+        # 确认按钮
+        confirm_btn = QPushButton("确定")
+        confirm_btn.setFixedSize(100, 36)
+        confirm_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #1A73E8;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-size: 13px;
+            }
+            QPushButton:hover {
+                background-color: #1557B0;
+            }
+        """)
+        confirm_btn.clicked.connect(dialog.accept)
+        btn_layout.addWidget(confirm_btn)
+
+        layout.addLayout(btn_layout)
+
+        return dialog.exec() == QDialog.DialogCode.Accepted
 
     def _show_current_answer(self):
         """显示当前题目答案 - 使用 QDialog 避免 Windows 弹窗闪烁"""
