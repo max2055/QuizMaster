@@ -40,7 +40,7 @@ def main():
     # 创建应用
     app = QApplication(sys.argv)
     app.setApplicationName("QuizMaster")
-    app.setApplicationVersion("1.5.3")
+    app.setApplicationVersion("1.5.4")
     app.setOrganizationName("QuizMaster - 逢考必过")
 
     # 加载全局样式表

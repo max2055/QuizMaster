@@ -513,9 +513,9 @@ class QuestionWidget(QWidget):
                 border: 1px solid #DADCE0;
                 border-radius: 8px;
                 color: #3C4043;
-                min-height: 50px;
-                padding: 12px 14px;
-                font-size: 16px;
+                min-height: 38px;
+                padding: 8px 12px;
+                font-size: 15px;
             }
             QRadioButton:hover {
                 border-color: #1A73E8;
@@ -540,9 +540,9 @@ class QuestionWidget(QWidget):
                 border: 1px solid #DADCE0;
                 border-radius: 8px;
                 color: #3C4043;
-                min-height: 50px;
-                padding: 12px 14px;
-                font-size: 16px;
+                min-height: 38px;
+                padding: 8px 12px;
+                font-size: 15px;
             }
             QCheckBox:hover {
                 border-color: #1A73E8;
@@ -575,9 +575,9 @@ class QuestionWidget(QWidget):
                 border: 1px solid #DADCE0;
                 border-radius: 8px;
                 color: #3C4043;
-                min-height: 40px;
-                padding: 12px 14px;
-                font-size: 13px;
+                min-height: 36px;
+                padding: 8px 12px;
+                font-size: 14px;
                 font-weight: 500;
             }
             QPushButton:hover {
@@ -1472,6 +1472,7 @@ class QuestionWidget(QWidget):
 
                 btn.setFont(QFont("Arial", 13))
                 btn.setText(f"{opt_letter}. {options[opt_letter]}")
+                btn.setWordWrap(True)
                 btn.setVisible(True)
                 btn.clicked.connect(self._on_option_clicked)
 
