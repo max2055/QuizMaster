@@ -1128,6 +1128,7 @@ class QuestionWidget(QWidget):
         self.fill_input.textChanged.connect(self._on_fill_text_changed)
         input_layout.addWidget(self.fill_input)
 
+        input_container.setVisible(True)
         self.options_layout.addWidget(input_container)
         self.option_buttons.append(input_container)
 
@@ -1494,6 +1495,7 @@ class QuestionWidget(QWidget):
                 btn.setFont(QFont("Arial", 13))
                 btn.setText(f"{opt_letter}. {options[opt_letter]}")
                 btn.setWordWrap(True)
+                btn.setSizePolicy(btn.sizePolicy().horizontalPolicy(), QSizePolicy.Policy.Preferred)
                 btn.setVisible(True)
                 btn.clicked.connect(self._on_option_clicked)
 
