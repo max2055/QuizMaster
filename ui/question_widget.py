@@ -1487,6 +1487,8 @@ class QuestionWidget(QWidget):
                     }}
                 """.replace("{opt_letter}", opt_letter))
                 container.setCursor(Qt.CursorShape.PointingHandCursor)
+                # 设置尺寸策略，确保容器能够正确扩展
+                container.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
                 container_layout = QHBoxLayout(container)
                 container_layout.setContentsMargins(8, 4, 8, 4)
                 container_layout.setSpacing(10)
@@ -1506,6 +1508,8 @@ class QuestionWidget(QWidget):
                 text_label.setFont(QFont("Arial", 13))
                 text_label.setWordWrap(True)
                 text_label.setStyleSheet("color: #3C4043; padding: 2px 4px;")
+                # 设置文本标签尺寸策略
+                text_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
                 container_layout.addWidget(text_label, 1)
 
                 # 点击容器切换选中状态
