@@ -1494,7 +1494,6 @@ class QuestionWidget(QWidget):
 
                 btn.setFont(QFont("Arial", 13))
                 btn.setText(f"{opt_letter}. {options[opt_letter]}")
-                btn.setWordWrap(True)
                 btn.setSizePolicy(btn.sizePolicy().horizontalPolicy(), QSizePolicy.Policy.Preferred)
                 btn.setVisible(True)
                 btn.clicked.connect(self._on_option_clicked)
