@@ -13,8 +13,8 @@ if sys.platform == 'darwin':
         "NSRequiresAquaSystemAppearance": True,
         "CFBundleName": "QuizMaster",
         "CFBundleDisplayName": "QuizMaster - 逢考必过",
-        "CFBundleVersion": "1.5.4",
-        "CFBundleShortVersionString": "1.5.4",
+        "CFBundleVersion": "1.5.5",
+        "CFBundleShortVersionString": "1.5.5",
         "NSHighResolutionCapable": True,
     }
 else:
