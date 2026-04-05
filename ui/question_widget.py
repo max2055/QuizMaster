@@ -1547,6 +1547,7 @@ class QuestionWidget(QWidget):
 
                 self.option_buttons.append((btn, container, text_label))
                 self.options_layout.addWidget(container)
+                container.show()  # 显式显示容器
 
                 if is_multi:
                     pass  # 多选题不加入 ButtonGroup
