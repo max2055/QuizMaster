@@ -508,6 +508,25 @@ class QuestionWidget(QWidget):
             self.options_layout.addWidget(btn)
 
         # 选项按钮样式 - 淡雅平面风格
+        # 使用容器 + QLabel 实现自动换行
+        option_container_style = """
+            QWidget {
+                background-color: #FFFFFF;
+                border: 1px solid #DADCE0;
+                border-radius: 8px;
+                padding: 8px 12px;
+            }
+            QWidget:hover {
+                background-color: #E8F0FE;
+                border-color: #1A73E8;
+            }
+            QLabel {
+                color: #3C4043;
+                font-size: 15px;
+                padding: 4px;
+            }
+        """
+
         radio_style = """
             QRadioButton {
                 background-color: #FFFFFF;
@@ -1353,8 +1372,11 @@ class QuestionWidget(QWidget):
     def _clear_question_area(self):
         """清空题目显示区域"""
         self.question_label.clear()
-        for btn in self.option_buttons:
-            btn.deleteLater()
+
+        # 清空选项容器
+        for item in self.option_buttons:
+            container = item[1]  # 元组第二个元素是容器
+            container.deleteLater()
         self.option_buttons.clear()
         self.option_group = QButtonGroup(self)
 
@@ -1449,8 +1471,9 @@ class QuestionWidget(QWidget):
         self.current_question_type = question_type
 
         # 清除旧的选项按钮
-        for btn in self.option_buttons:
-            btn.deleteLater()
+        for item in self.option_buttons:
+            container = item[1]  # 元组第二个元素是容器
+            container.deleteLater()
 
         # 清除 options_layout 中的内容（但保留 answer_status_label）
         while self.options_layout.count():
@@ -1477,36 +1500,64 @@ class QuestionWidget(QWidget):
         # 填空题特殊处理
         elif is_fill:
             self._show_fill_input()
-        # 单选题/多选题处理
+        # 单选题/多选题处理 - 使用容器 + QLabel 实现自动换行
         else:
             for i, opt_letter in enumerate(["A", "B", "C", "D", "E", "F"]):
                 if opt_letter not in options:
                     continue
 
-                if is_multi:
-                    # 多选题使用 CheckBox
-                    btn = QCheckBox()
-                    btn.setStyleSheet(self.checkbox_style)
-                else:
-                    # 单选题使用 RadioButton
-                    btn = QRadioButton()
-                    btn.setStyleSheet(self.radio_style)
+                # 创建容器
+                container = QWidget()
+                container.setObjectName(f"option_{opt_letter}")
+                container.setStyleSheet(option_container_style)
+                container.setCursor(Qt.CursorShape.PointingHandCursor)
+                container_layout = QHBoxLayout(container)
+                container_layout.setContentsMargins(8, 4, 8, 4)
+                container_layout.setSpacing(8)
 
-                btn.setFont(QFont("Arial", 13))
-                btn.setText(f"{opt_letter}. {options[opt_letter]}")
-                btn.setSizePolicy(btn.sizePolicy().horizontalPolicy(), QSizePolicy.Policy.Preferred)
-                btn.setVisible(True)
+                if is_multi:
+                    # 多选题使用 CheckBox（隐藏，只用于状态）
+                    btn = QCheckBox()
+                else:
+                    # 单选题使用 RadioButton（隐藏，只用于状态）
+                    btn = QRadioButton()
+
+                btn.setVisible(False)  # 隐藏原生按钮
+                container_layout.addWidget(btn)
+
+                # 文本标签（支持自动换行）
+                text_label = QLabel(f"{opt_letter}. {options[opt_letter]}")
+                text_label.setFont(QFont("Arial", 13))
+                text_label.setWordWrap(True)
+                text_label.setAlignment(Qt.AlignmentFlag.AlignTop)
+                text_label.setStyleSheet("color: #3C4043; font-size: 15px; padding: 4px;")
+                container_layout.addWidget(text_label, 1)  # 1 = 拉伸因子
+
+                # 点击容器切换选中状态
+                container.mousePressEvent = lambda e, b=btn: b.toggle()
+
+                # 同步状态：当按钮状态改变时更新容器样式
+                def on_state_changed(state, c=container, is_m=is_multi):
+                    if is_m:
+                        c.setProperty("selected", state)
+                    else:
+                        c.setProperty("selected", state == 2)  # Qt.Checked = 2
+                    c.style().unpolish(c)
+                    c.style().polish(c)
+                    c.update()
+
+                btn.stateChanged.connect(on_state_changed)
+
                 btn.clicked.connect(self._on_option_clicked)
 
-                self.option_buttons.append(btn)
+                self.option_buttons.append((btn, container, text_label))
+                self.options_layout.addWidget(container)
 
                 if is_multi:
                     # 多选题不加入 ButtonGroup
                     pass
                 else:
                     self.option_group.addButton(btn)
-
-                self.options_layout.addWidget(btn)
 
         # 恢复之前的选择
         if index in self.user_answers:
@@ -1516,7 +1567,8 @@ class QuestionWidget(QWidget):
 
             if is_multi and isinstance(selected, list):
                 # 多选题答案
-                for btn in self.option_buttons:
+                for item in self.option_buttons:
+                    btn = item[0]  # 元组第一个元素是按钮
                     btn_text = btn.text()
                     if btn_text:
                         opt = btn_text.split(".")[0]
@@ -1526,14 +1578,15 @@ class QuestionWidget(QWidget):
                 # 判断题答案：A=正确，B=错误
                 btn_index = 0 if selected == "A" else 1
                 if 0 <= btn_index < len(self.option_buttons):
-                    self.option_buttons[btn_index].setChecked(True)
+                    self.option_buttons[btn_index][0].setChecked(True)
             elif is_fill:
                 # 填空题答案
                 if hasattr(self, 'fill_input'):
                     self.fill_input.setText(selected)
             else:
                 # 单选题答案
-                for btn in self.option_buttons:
+                for item in self.option_buttons:
+                    btn = item[0]  # 元组第一个元素是按钮
                     btn_text = btn.text()
                     if btn_text and btn_text.startswith(f"{selected}."):
                         btn.setChecked(True)
@@ -1634,8 +1687,9 @@ class QuestionWidget(QWidget):
                 self._show_question(self.current_index)
             else:
                 self.question_label.clear()
-                for btn in self.option_buttons:
-                    btn.setVisible(False)
+                for item in self.option_buttons:
+                    container = item[1]  # 元组第二个元素是容器
+                    container.setVisible(False)
                 self.prev_btn.setEnabled(False)
                 self.next_btn.setEnabled(False)
                 self.progress_text_label.setText("暂无题目")
@@ -1659,7 +1713,8 @@ class QuestionWidget(QWidget):
         if is_multi:
             # 多选题：收集所有选中的选项
             selected_options = []
-            for btn in self.option_buttons:
+            for item in self.option_buttons:
+                btn = item[0]  # 元组第一个元素是按钮
                 if btn.isChecked():
                     btn_text = btn.text()
                     if btn_text:
@@ -1679,12 +1734,13 @@ class QuestionWidget(QWidget):
         elif is_true_false:
             # 判断题处理
             selected_letter = None
-            for i, btn in enumerate(self.option_buttons):
+            for i, item in enumerate(self.option_buttons):
+                btn = item[0]  # 元组第一个元素是按钮
                 if btn.isChecked():
                     # 清除其他按钮的选中状态
-                    for j, other_btn in enumerate(self.option_buttons):
+                    for j, other_item in enumerate(self.option_buttons):
                         if i != j:
-                            other_btn.setChecked(False)
+                            other_item[0].setChecked(False)
                     selected_letter = "A" if i == 0 else "B"  # A=正确，B=错误
                     btn.setChecked(True)
                     break
