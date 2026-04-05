@@ -498,6 +498,7 @@ class QuestionWidget(QWidget):
 
         self.options_layout = QVBoxLayout()
         self.options_layout.setSpacing(6)
+        self.options_layout.setContentsMargins(12, 8, 12, 8)
 
         # 初始化选项按钮
         for option in ["A", "B", "C", "D", "E", "F"]:
@@ -1094,8 +1095,9 @@ class QuestionWidget(QWidget):
 
         # 创建输入框容器
         input_container = QWidget()
+        input_container.setObjectName("fill_input_container")
         input_layout = QVBoxLayout(input_container)
-        input_layout.setContentsMargins(0, 4, 0, 0)
+        input_layout.setContentsMargins(8, 8, 8, 8)
         input_layout.setSpacing(8)
 
         # 标签
@@ -1114,7 +1116,8 @@ class QuestionWidget(QWidget):
                 padding: 12px;
                 background-color: #FFFFFF;
                 font-size: 14px;
-                min-height: 100px;
+                min-height: 80px;
+                max-height: 120px;
                 color: #3c4043;
             }
             QTextEdit:focus {
@@ -1354,6 +1357,14 @@ class QuestionWidget(QWidget):
         self.option_buttons.clear()
         self.option_group = QButtonGroup(self)
 
+        # 清空答题状态提示
+        self.answer_status_label.setText("")
+
+        # 清除填空题输入框（如果有）
+        if hasattr(self, 'fill_input'):
+            self.fill_input.deleteLater()
+            delattr(self, 'fill_input')
+
     # 搜索文本属性（由主窗口设置）
     search_text = ''
 
@@ -1439,8 +1450,18 @@ class QuestionWidget(QWidget):
         # 清除旧的选项按钮
         for btn in self.option_buttons:
             btn.deleteLater()
+
+        # 清除 options_layout 中的内容（但保留 answer_status_label）
+        while self.options_layout.count():
+            item = self.options_layout.takeAt(0)
+            widget = item.widget()
+            if widget and widget != self.answer_status_label:
+                widget.deleteLater()
         self.option_buttons.clear()
         self.option_group = QButtonGroup(self)
+
+        # 重新添加答题状态提示到布局顶部
+        self.options_layout.insertWidget(0, self.answer_status_label)
 
         options = self.current_question.options
 
