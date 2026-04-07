@@ -31,7 +31,7 @@ a = Analysis(
         'PyQt6.sip',
         'pandas',
         'openpyxl',
-        'docx',
+        'python-docx',
     ],
     hookspath=[],
     hooksconfig={},
