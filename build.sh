@@ -27,7 +27,7 @@ echo "[完成] 清理完成"
 echo ""
 
 echo "[3/4] 开始打包..."
-pyinstaller --clean QuizMaster.spec
+pyinstaller --clean 逢考必过.spec
 if [ $? -ne 0 ]; then
     echo "[错误] 打包失败"
     exit 1
