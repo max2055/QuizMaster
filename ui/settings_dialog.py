@@ -1,7 +1,7 @@
 """设置对话框 - 应用配置设置"""
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QCheckBox, QSpinBox, QFrame, QWidget, QScrollArea
+    QCheckBox, QSpinBox, QFrame, QWidget, QScrollArea, QSizePolicy
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
@@ -69,8 +69,8 @@ class SettingsDialog(QDialog):
 
         content_widget = QWidget()
         content_layout = QVBoxLayout(content_widget)
-        content_layout.setSpacing(8)
-        content_layout.setContentsMargins(12, 12, 12, 12)
+        content_layout.setSpacing(4)  # 从 8 改为 4，缩短间距
+        content_layout.setContentsMargins(8, 8, 8, 8)  # 从 12 改为 8
 
         # 答题设置组
         self._create_section(content_layout, "📝 答题设置", self._create_practice_settings)
@@ -149,13 +149,13 @@ class SettingsDialog(QDialog):
             }
         """)
         section_layout = QVBoxLayout(section_widget)
-        section_layout.setContentsMargins(12, 8, 12, 8)
-        section_layout.setSpacing(4)
+        section_layout.setContentsMargins(8, 4, 8, 4)
+        section_layout.setSpacing(2)
 
-        # 标题
+        # 标题 - 图标和文字之间增加间距
         title_label = QLabel(title)
-        title_label.setFont(QFont("Arial", 10, QFont.Weight.Medium))
-        title_label.setStyleSheet("color: #5F6368;")
+        title_label.setFont(QFont("Arial", 12, QFont.Weight.Medium))
+        title_label.setStyleSheet("color: #3C4043; letter-spacing: 0.5px;")
         section_layout.addWidget(title_label)
 
         # 内容
@@ -172,44 +172,25 @@ class SettingsDialog(QDialog):
         # 延迟设置 - 紧凑布局
         delay_widget = QWidget()
         delay_layout = QHBoxLayout(delay_widget)
-        delay_layout.setContentsMargins(20, 0, 0, 0)
+        delay_layout.setContentsMargins(20, 2, 0, 2)
         delay_layout.setSpacing(6)
 
         delay_label = QLabel("延迟：")
-        delay_label.setStyleSheet("color: #5F6368; font-size: 11px;")
+        delay_label.setStyleSheet("color: #5F6368; font-size: 13px;")
         delay_layout.addWidget(delay_label)
 
         self.delay_spin = QSpinBox()
         self.delay_spin.setRange(100, 3000)
         self.delay_spin.setSingleStep(100)
         self.delay_spin.setValue(self.settings.get('auto_next_delay', 500))
-        self.delay_spin.setSuffix("毫秒")
-        self.delay_spin.setFixedWidth(70)
-        self.delay_spin.setMinimumHeight(24)
-        self.delay_spin.setEnabled(self.settings.get('auto_next', False))
-        self.delay_spin.setStyleSheet("""
-            QSpinBox {
-                border: 1px solid #DADCE0;
-                border-radius: 4px;
-                padding: 4px 6px;
-                background-color: #FFFFFF;
-                font-size: 11px;
-                color: #3C4043;
-            }
-            QSpinBox:focus {
-                border-color: #1A73E8;
-            }
-            QSpinBox::up-button, QSpinBox::down-button {
-                border: none;
-                border-radius: 3px;
-                background-color: #F1F3F4;
-                width: 16px;
-            }
-            QSpinBox::up-button:hover, QSpinBox::down-button:hover {
-                background-color: #E8EAED;
-            }
-        """)
+        self.delay_spin.setFixedWidth(90)
         delay_layout.addWidget(self.delay_spin)
+
+        delay_unit = QLabel("毫秒")
+        delay_unit.setStyleSheet("color: #5F6368; font-size: 11px;")
+        delay_unit.setFixedWidth(35)
+        delay_layout.addWidget(delay_unit)
+
         delay_layout.addStretch()
         layout.addWidget(delay_widget)
 
@@ -219,43 +200,25 @@ class SettingsDialog(QDialog):
         # 每次刷题数量 - 紧凑布局
         quantity_widget = QWidget()
         quantity_layout = QHBoxLayout(quantity_widget)
-        quantity_layout.setContentsMargins(20, 0, 0, 0)
+        quantity_layout.setContentsMargins(20, 2, 0, 2)
         quantity_layout.setSpacing(6)
 
         quantity_label = QLabel("数量：")
-        quantity_label.setStyleSheet("color: #5F6368; font-size: 11px;")
+        quantity_label.setStyleSheet("color: #5F6368; font-size: 13px;")
         quantity_layout.addWidget(quantity_label)
 
         self.quantity_spin = QSpinBox()
         self.quantity_spin.setRange(10, 500)
         self.quantity_spin.setSingleStep(10)
         self.quantity_spin.setValue(self.settings.get('questions_per_session', 50))
-        self.quantity_spin.setSuffix("题")
-        self.quantity_spin.setFixedWidth(70)
-        self.quantity_spin.setMinimumHeight(24)
-        self.quantity_spin.setStyleSheet("""
-            QSpinBox {
-                border: 1px solid #DADCE0;
-                border-radius: 4px;
-                padding: 4px 6px;
-                background-color: #FFFFFF;
-                font-size: 11px;
-                color: #3C4043;
-            }
-            QSpinBox:focus {
-                border-color: #1A73E8;
-            }
-            QSpinBox::up-button, QSpinBox::down-button {
-                border: none;
-                border-radius: 3px;
-                background-color: #F1F3F4;
-                width: 16px;
-            }
-            QSpinBox::up-button:hover, QSpinBox::down-button:hover {
-                background-color: #E8EAED;
-            }
-        """)
+        self.quantity_spin.setFixedWidth(90)
         quantity_layout.addWidget(self.quantity_spin)
+
+        quantity_unit = QLabel("题")
+        quantity_unit.setStyleSheet("color: #5F6368; font-size: 11px;")
+        quantity_unit.setFixedWidth(20)
+        quantity_layout.addWidget(quantity_unit)
+
         quantity_layout.addStretch()
         layout.addWidget(quantity_widget)
 
@@ -271,80 +234,88 @@ class SettingsDialog(QDialog):
         # 单选题
         single_widget = QWidget()
         single_layout = QHBoxLayout(single_widget)
-        single_layout.setContentsMargins(20, 0, 0, 0)
+        single_layout.setContentsMargins(20, 2, 0, 2)
         single_layout.setSpacing(6)
         single_label = QLabel("单选：")
-        single_label.setStyleSheet("color: #5F6368; font-size: 11px;")
+        single_label.setStyleSheet("color: #5F6368; font-size: 13px;")
         single_layout.addWidget(single_label)
         self.start_spin_single = QSpinBox()
         self.start_spin_single.setRange(1, 1000)
         self.start_spin_single.setSingleStep(1)
         self.start_spin_single.setValue(self.settings.get('start_from_question_single', 1))
-        self.start_spin_single.setSuffix("题")
-        self.start_spin_single.setFixedWidth(70)
-        self.start_spin_single.setMinimumHeight(24)
-        self._apply_spin_style(self.start_spin_single)
+        self.start_spin_single.setPrefix("第 ")
+        self.start_spin_single.setFixedWidth(100)
         single_layout.addWidget(self.start_spin_single)
+        single_unit = QLabel("题")
+        single_unit.setStyleSheet("color: #5F6368; font-size: 11px;")
+        single_unit.setFixedWidth(20)
+        single_layout.addWidget(single_unit)
         single_layout.addStretch()
         layout.addWidget(single_widget)
 
         # 多选题
         multi_widget = QWidget()
         multi_layout = QHBoxLayout(multi_widget)
-        multi_layout.setContentsMargins(20, 0, 0, 0)
+        multi_layout.setContentsMargins(20, 2, 0, 2)
         multi_layout.setSpacing(6)
         multi_label = QLabel("多选：")
-        multi_label.setStyleSheet("color: #5F6368; font-size: 11px;")
+        multi_label.setStyleSheet("color: #5F6368; font-size: 13px;")
         multi_layout.addWidget(multi_label)
         self.start_spin_multi = QSpinBox()
         self.start_spin_multi.setRange(1, 1000)
         self.start_spin_multi.setSingleStep(1)
         self.start_spin_multi.setValue(self.settings.get('start_from_question_multi', 1))
-        self.start_spin_multi.setSuffix("题")
-        self.start_spin_multi.setFixedWidth(70)
-        self.start_spin_multi.setMinimumHeight(24)
-        self._apply_spin_style(self.start_spin_multi)
+        self.start_spin_multi.setPrefix("第 ")
+        self.start_spin_multi.setFixedWidth(100)
         multi_layout.addWidget(self.start_spin_multi)
+        multi_unit = QLabel("题")
+        multi_unit.setStyleSheet("color: #5F6368; font-size: 11px;")
+        multi_unit.setFixedWidth(20)
+        multi_layout.addWidget(multi_unit)
         multi_layout.addStretch()
         layout.addWidget(multi_widget)
 
         # 判断题
         judge_widget = QWidget()
         judge_layout = QHBoxLayout(judge_widget)
-        judge_layout.setContentsMargins(20, 0, 0, 0)
+        judge_layout.setContentsMargins(20, 2, 0, 2)
         judge_layout.setSpacing(6)
         judge_label = QLabel("判断：")
-        judge_label.setStyleSheet("color: #5F6368; font-size: 11px;")
+        judge_label.setStyleSheet("color: #5F6368; font-size: 13px;")
         judge_layout.addWidget(judge_label)
         self.start_spin_judge = QSpinBox()
         self.start_spin_judge.setRange(1, 1000)
         self.start_spin_judge.setSingleStep(1)
         self.start_spin_judge.setValue(self.settings.get('start_from_question_judge', 1))
-        self.start_spin_judge.setSuffix("题")
-        self.start_spin_judge.setFixedWidth(70)
-        self.start_spin_judge.setMinimumHeight(24)
-        self._apply_spin_style(self.start_spin_judge)
+        self.start_spin_judge.setPrefix("第 ")
+        self.start_spin_judge.setFixedWidth(100)
         judge_layout.addWidget(self.start_spin_judge)
+        judge_unit = QLabel("题")
+        judge_unit.setStyleSheet("color: #5F6368; font-size: 11px;")
+        judge_unit.setFixedWidth(20)
+        judge_layout.addWidget(judge_unit)
         judge_layout.addStretch()
         layout.addWidget(judge_widget)
 
         # 填空题
         fill_widget = QWidget()
         fill_layout = QHBoxLayout(fill_widget)
-        fill_layout.setContentsMargins(20, 0, 0, 0)
+        fill_layout.setContentsMargins(20, 2, 0, 2)
         fill_layout.setSpacing(6)
         fill_label = QLabel("填空：")
-        fill_label.setStyleSheet("color: #5F6368; font-size: 11px;")
+        fill_label.setStyleSheet("color: #5F6368; font-size: 13px;")
         fill_layout.addWidget(fill_label)
         self.start_spin_fill = QSpinBox()
         self.start_spin_fill.setRange(1, 1000)
         self.start_spin_fill.setSingleStep(1)
         self.start_spin_fill.setValue(self.settings.get('start_from_question_fill', 1))
-        self.start_spin_fill.setSuffix("题")
-        self.start_spin_fill.setFixedWidth(70)
-        self.start_spin_fill.setMinimumHeight(24)
-        self._apply_spin_style(self.start_spin_fill)
+        self.start_spin_fill.setPrefix("第 ")
+        self.start_spin_fill.setFixedWidth(100)
         fill_layout.addWidget(self.start_spin_fill)
+        fill_unit = QLabel("题")
+        fill_unit.setStyleSheet("color: #5F6368; font-size: 11px;")
+        fill_unit.setFixedWidth(20)
+        fill_layout.addWidget(fill_unit)
         fill_layout.addStretch()
         layout.addWidget(fill_widget)
 
@@ -367,11 +338,13 @@ class SettingsDialog(QDialog):
         cb.setChecked(checked)
         cb.setFont(QFont("Arial", 11))
         cb.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        cb.setMinimumHeight(24)
+        cb.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         cb.setStyleSheet("""
             QCheckBox {
                 color: #3C4043;
                 spacing: 8px;
+                margin-top: 0px;
+                margin-bottom: 0px;
             }
             QCheckBox::indicator {
                 width: 18px;
@@ -410,28 +383,3 @@ class SettingsDialog(QDialog):
             'start_from_question_judge': self.start_spin_judge.value(),
             'start_from_question_fill': self.start_spin_fill.value(),
         }
-
-    def _apply_spin_style(self, spin: QSpinBox):
-        """应用 SpinBox 样式"""
-        spin.setStyleSheet("""
-            QSpinBox {
-                border: 1px solid #DADCE0;
-                border-radius: 4px;
-                padding: 4px 6px;
-                background-color: #FFFFFF;
-                font-size: 11px;
-                color: #3C4043;
-            }
-            QSpinBox:focus {
-                border-color: #1A73E8;
-            }
-            QSpinBox::up-button, QSpinBox::down-button {
-                border: none;
-                border-radius: 3px;
-                background-color: #F1F3F4;
-                width: 16px;
-            }
-            QSpinBox::up-button:hover, QSpinBox::down-button:hover {
-                background-color: #E8EAED;
-            }
-        """)
