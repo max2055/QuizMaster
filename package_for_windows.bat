@@ -42,7 +42,7 @@ echo.
 
 echo [4/5] 开始打包...
 echo 这可能需要 1-3 分钟，请耐心等待...
-pyinstaller --clean QuizMaster.spec
+pyinstaller --clean 逢考必过.spec
 if errorlevel 1 (
     echo [错误] 打包失败
     pause
