@@ -254,7 +254,6 @@ class QuestionWidget(QWidget):
         self.auto_next = self.settings.get('auto_next', False)
         self.auto_next_delay = self.settings.get('auto_next_delay', 500)
         self.questions_per_session = self.settings.get('questions_per_session', 50)
-        self.continue_last_session = self.settings.get('continue_last_session', False)
 
         self._init_ui()
         self._setup_shortcuts()
@@ -270,8 +269,6 @@ class QuestionWidget(QWidget):
             'confirm_before_submit': settings.value('confirm_before_submit', True, type=bool),
             'remember_window_size': settings.value('remember_window_size', True, type=bool),
             'questions_per_session': settings.value('questions_per_session', 50, type=int),
-            'continue_last_session': settings.value('continue_last_session', False, type=bool),
-            'last_practice_mode': settings.value('last_practice_mode', 'sequence', type=str),
         }
 
     def _save_settings(self, settings: dict):
@@ -2180,7 +2177,6 @@ class QuestionWidget(QWidget):
             self.auto_next = new_settings.get('auto_next', False)
             self.auto_next_delay = new_settings.get('auto_next_delay', 500)
             self.questions_per_session = new_settings.get('questions_per_session', 50)
-            self.continue_last_session = new_settings.get('continue_last_session', False)
 
     def _toggle_mastered(self):
         """切换题目掌握状态（错题本）"""
