@@ -50,6 +50,16 @@ chmod +x build.sh
 ./build.sh
 ```
 
+**GitHub Actions 自动构建:**
+
+推送标签后自动构建 Windows 可执行文件：
+```bash
+git tag v1.5.7
+git push origin v1.5.7
+```
+
+构建产物在 **Actions** 页面下载：https://github.com/max2055/QuizMaster/actions
+
 打包完成后，可执行文件位于 `dist/` 目录。
 
 ---
@@ -192,4 +202,4 @@ MIT License
 ---
 
 **版本**: 1.5.7  
-**更新日期**: 2026-04-07
+**更新日期**: 2026-04-08
