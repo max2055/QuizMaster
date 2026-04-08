@@ -1,18 +1,18 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
-PyInstaller 配置文件
-用于生成 Windows 单文件可执行程序
+QuizMaster PyInstaller Configuration
+Builds single-file Windows executable
 """
 import sys
 
 block_cipher = None
 
-# macOS Info.plist 配置（强制浅色模式）
+# macOS Info.plist configuration (force light mode)
 if sys.platform == 'darwin':
     info_plist_dict = {
         "NSRequiresAquaSystemAppearance": True,
         "CFBundleName": "QuizMaster",
-        "CFBundleDisplayName": "QuizMaster - 逢考必过",
+        "CFBundleDisplayName": "QuizMaster",
         "CFBundleVersion": "1.5.7",
         "CFBundleShortVersionString": "1.5.7",
         "NSHighResolutionCapable": True,
@@ -25,7 +25,7 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-        ('quizmaster.db', '.'),  # 包含数据库文件
+        ('quizmaster.db', '.'),  # Include database file
     ],
     hiddenimports=[
         'PyQt6.sip',
@@ -74,6 +74,6 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    # icon='resources/icons/app.ico',  # 暂无图标
-    info_plist=info_plist_dict,  # macOS 专用配置
+    # icon='resources/icons/app.ico',  # No icon yet
+    info_plist=info_plist_dict,  # macOS only
 )
