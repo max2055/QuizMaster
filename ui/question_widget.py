@@ -291,6 +291,42 @@ class QuestionWidget(QWidget):
         qsettings.setValue('last_practice_offset', self.current_offset + self.current_index)
         qsettings.setValue('last_practice_mode', self.practice_mode)
 
+    def _update_start_question_setting(self):
+        """更新起始题号设置，以便下次从已完成位置之后开始"""
+        if not self.questions or not self.current_category_name:
+            return
+
+        # 计算已完成的最后一题的题号
+        last_completed_serial = self.questions[-1].serial_number
+        next_question_number = last_completed_serial + 1
+
+        # 根据当前分类的题型确定设置键
+        clean_name = self.current_category_name.replace('📚', '').replace('📖', '').strip()
+        setting_key_map = {
+            '单选': 'start_from_question_single',
+            '多选': 'start_from_question_multi',
+            '判断': 'start_from_question_judge',
+            '填空': 'start_from_question_fill',
+        }
+
+        # 查找匹配的设置键
+        setting_key = None
+        for qtype, key in setting_key_map.items():
+            if qtype in clean_name:
+                setting_key = key
+                break
+
+        # 如果是"全部题目"或其他，默认使用单选题设置
+        if not setting_key:
+            setting_key = 'start_from_question_single'
+
+        # 更新设置
+        qsettings = QSettings('QuizMaster', 'Settings')
+        qsettings.setValue(setting_key, next_question_number)
+
+        # 同时更新内存中的 settings 缓存
+        self.settings[setting_key] = next_question_number
+
     def _load_marked_questions(self):
         """加载已标记的题目"""
         try:
@@ -1963,6 +1999,9 @@ class QuestionWidget(QWidget):
 
         # 保存进度
         self._save_progress()
+
+        # 更新起始题号设置，以便下次从已完成位置之后开始
+        self._update_start_question_setting()
 
         # 显示汇总对话框
         self._show_summary_dialog()
