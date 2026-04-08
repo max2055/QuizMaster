@@ -291,42 +291,6 @@ class QuestionWidget(QWidget):
         qsettings.setValue('last_practice_offset', self.current_offset + self.current_index)
         qsettings.setValue('last_practice_mode', self.practice_mode)
 
-    def _update_start_question_setting(self):
-        """更新起始题号设置，以便下次从已完成位置之后开始"""
-        if not self.questions or not self.current_category_name:
-            return
-
-        # 计算已完成的最后一题的题号
-        last_completed_serial = self.questions[-1].serial_number
-        next_question_number = last_completed_serial + 1
-
-        # 根据当前分类的题型确定设置键
-        clean_name = self.current_category_name.replace('📚', '').replace('📖', '').strip()
-        setting_key_map = {
-            '单选': 'start_from_question_single',
-            '多选': 'start_from_question_multi',
-            '判断': 'start_from_question_judge',
-            '填空': 'start_from_question_fill',
-        }
-
-        # 查找匹配的设置键
-        setting_key = None
-        for qtype, key in setting_key_map.items():
-            if qtype in clean_name:
-                setting_key = key
-                break
-
-        # 如果是"全部题目"或其他，默认使用单选题设置
-        if not setting_key:
-            setting_key = 'start_from_question_single'
-
-        # 更新设置
-        qsettings = QSettings('QuizMaster', 'Settings')
-        qsettings.setValue(setting_key, next_question_number)
-
-        # 同时更新内存中的 settings 缓存
-        self.settings[setting_key] = next_question_number
-
     def _load_marked_questions(self):
         """加载已标记的题目"""
         try:
@@ -1328,19 +1292,51 @@ class QuestionWidget(QWidget):
                     for idx, q in enumerate(self.all_questions, start=1):
                         q.serial_number = idx
 
+                # 顺序模式下，动态计算起始位置（基于答题记录）
+                if self.practice_mode == 'sequence' and not self.current_category_name:
+                    # 获取当前题型
+                    question_type_for_lookup = None
+                    if category_name:
+                        clean_name = category_name.replace('📚', '').replace('📖', '').strip()
+                        if '单选' in clean_name:
+                            question_type_for_lookup = '单选'
+                        elif '多选' in clean_name:
+                            question_type_for_lookup = '多选'
+                        elif '判断' in clean_name:
+                            question_type_for_lookup = '判断'
+                        elif '填空' in clean_name:
+                            question_type_for_lookup = '填空'
+
+                    # 查询最后一次练习的题目 ID
+                    last_question_id = self.practice_service.get_last_practiced_question(
+                        category_id, question_type_for_lookup
+                    )
+
+                    if last_question_id:
+                        # 找到该题目在 all_questions 中的索引
+                        for i, q in enumerate(self.all_questions):
+                            if q.id == last_question_id:
+                                self.current_offset = i + 1
+                                break
+                        else:
+                            self.current_offset = 0
+                    else:
+                        self.current_offset = 0
+
                 # 根据设置决定起始位置（支持自定义起始题号，按题型区分）
-                start_type_map = {
-                    '单选': 'start_from_question_single',
-                    '多选': 'start_from_question_multi',
-                    '判断': 'start_from_question_judge',
-                    '填空': 'start_from_question_fill',
-                }
-                start_key = start_type_map.get(question_type_filter, 'start_from_question_single')
-                start_from = self.settings.get(start_key, 1)
-                if start_from > 1 and start_from <= len(self.all_questions):
-                    self.current_offset = start_from - 1
-                else:
-                    self.current_offset = 0
+                # 仅当用户手动设置了起始题号时才使用
+                if self.practice_mode == 'sequence':
+                    start_type_map = {
+                        '单选': 'start_from_question_single',
+                        '多选': 'start_from_question_multi',
+                        '判断': 'start_from_question_judge',
+                        '填空': 'start_from_question_fill',
+                    }
+                    start_key = start_type_map.get(question_type_filter, 'start_from_question_single')
+                    start_from = self.settings.get(start_key, 1)
+                    # 只有当起始题号 > 1 时才覆盖动态计算的结果
+                    if start_from > 1 and start_from <= len(self.all_questions):
+                        self.current_offset = start_from - 1
 
                 # 截取当前批次
                 end_index = min(self.current_offset + self.questions_per_session, len(self.all_questions))
@@ -1999,9 +1995,6 @@ class QuestionWidget(QWidget):
 
         # 保存进度
         self._save_progress()
-
-        # 更新起始题号设置，以便下次从已完成位置之后开始
-        self._update_start_question_setting()
 
         # 显示汇总对话框
         self._show_summary_dialog()

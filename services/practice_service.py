@@ -217,6 +217,32 @@ class PracticeService:
         """, (limit,))
         return [PracticeSession.from_row(row) for row in rows]
 
+    def get_last_practiced_question(self, category_id: Optional[int], question_type: Optional[str]) -> Optional[int]:
+        """获取某分类/题型下最后一次练习的题目 ID（用于计算下次起始位置）"""
+        query = """
+            SELECT pr.question_id
+            FROM practice_records pr
+            JOIN questions q ON pr.question_id = q.id
+            WHERE 1=1
+        """
+        params = []
+
+        if category_id:
+            query += " AND q.category_id = ?"
+            params.append(category_id)
+
+        if question_type:
+            query += " AND q.question_type = ?"
+            params.append(question_type)
+
+        query += """
+            ORDER BY pr.practice_session_id DESC, pr.question_id DESC
+            LIMIT 1
+        """
+
+        row = self.db.fetchone(query, tuple(params))
+        return row[0] if row else None
+
     # ========== 标记功能 ==========
 
     def get_marked_questions(self) -> set:
