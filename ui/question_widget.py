@@ -1721,12 +1721,6 @@ class QuestionWidget(QWidget):
                 self.answer_status_label.setText("")
                 self.result_frame.setVisible(False)
 
-            # 错题模式：只显示上次答案，不显示正确答案
-            if self.practice_mode == 'wrong' and self.current_question:
-                last_record = self.practice_service.get_question_record(self.current_question.id)
-                if last_record and last_record.user_answer:
-                    self.answer_status_label.setText(f"上次答案：{last_record.user_answer}")
-                    self.answer_status_label.setStyleSheet("color: #5F6368; font-weight: 500;")
 
         is_marked = self.current_question.id in self.marked_questions
         self.mark_btn.setChecked(is_marked)
