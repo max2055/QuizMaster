@@ -271,11 +271,6 @@ class QuestionWidget(QWidget):
             'remember_window_size': settings.value('remember_window_size', True, type=bool),
             'questions_per_session': settings.value('questions_per_session', 50, type=int),
             'continue_last_session': settings.value('continue_last_session', False, type=bool),
-            'start_from_question_single': settings.value('start_from_question_single', 1, type=int),
-            'start_from_question_multi': settings.value('start_from_question_multi', 1, type=int),
-            'start_from_question_judge': settings.value('start_from_question_judge', 1, type=int),
-            'start_from_question_fill': settings.value('start_from_question_fill', 1, type=int),
-            'last_practice_offset': settings.value('last_practice_offset', 0, type=int),
             'last_practice_mode': settings.value('last_practice_mode', 'sequence', type=str),
         }
 
@@ -284,12 +279,6 @@ class QuestionWidget(QWidget):
         qsettings = QSettings('QuizMaster', 'Settings')
         for key, value in settings.items():
             qsettings.setValue(key, value)
-
-    def _save_progress(self):
-        """保存当前进度"""
-        qsettings = QSettings('QuizMaster', 'Settings')
-        qsettings.setValue('last_practice_offset', self.current_offset + self.current_index)
-        qsettings.setValue('last_practice_mode', self.practice_mode)
 
     def _load_marked_questions(self):
         """加载已标记的题目"""
@@ -1293,7 +1282,7 @@ class QuestionWidget(QWidget):
                         q.serial_number = idx
 
                 # 顺序模式下，动态计算起始位置（基于答题记录）
-                if self.practice_mode == 'sequence' and not self.current_category_name:
+                if self.practice_mode == 'sequence':
                     # 获取当前题型
                     question_type_for_lookup = None
                     if category_name:
@@ -1313,7 +1302,7 @@ class QuestionWidget(QWidget):
                     )
 
                     if last_question_id:
-                        # 找到该题目在 all_questions 中的索引
+                        # 找到该题目在 all_questions 中的索引，从下一题开始
                         for i, q in enumerate(self.all_questions):
                             if q.id == last_question_id:
                                 self.current_offset = i + 1
@@ -1322,21 +1311,6 @@ class QuestionWidget(QWidget):
                             self.current_offset = 0
                     else:
                         self.current_offset = 0
-
-                # 根据设置决定起始位置（支持自定义起始题号，按题型区分）
-                # 仅当用户手动设置了起始题号时才使用
-                if self.practice_mode == 'sequence':
-                    start_type_map = {
-                        '单选': 'start_from_question_single',
-                        '多选': 'start_from_question_multi',
-                        '判断': 'start_from_question_judge',
-                        '填空': 'start_from_question_fill',
-                    }
-                    start_key = start_type_map.get(question_type_filter, 'start_from_question_single')
-                    start_from = self.settings.get(start_key, 1)
-                    # 只有当起始题号 > 1 时才覆盖动态计算的结果
-                    if start_from > 1 and start_from <= len(self.all_questions):
-                        self.current_offset = start_from - 1
 
                 # 截取当前批次
                 end_index = min(self.current_offset + self.questions_per_session, len(self.all_questions))
@@ -1993,9 +1967,6 @@ class QuestionWidget(QWidget):
         self.session_submitted = True
         self.practice_service.complete_session(self.current_session_id)
 
-        # 保存进度
-        self._save_progress()
-
         # 显示汇总对话框
         self._show_summary_dialog()
 
@@ -2104,9 +2075,6 @@ class QuestionWidget(QWidget):
 
             # 显示当前题目
             self._show_question(0)
-
-            # 保存进度
-            self._save_progress()
 
         except Exception as e:
             print(f"加载下一批题目失败：{e}")
