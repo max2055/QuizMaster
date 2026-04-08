@@ -1543,63 +1543,190 @@ class QuestionWidget(QWidget):
             is_true_false = self.current_question_type in ('true_false', '判断题')
             is_fill = self.current_question_type in ('fill', '填空题')
 
-            if is_multi and isinstance(selected, list):
-                # 多选题答案
-                for btn, container, letter in self.option_buttons:
-                    if letter in selected:
-                        btn.setChecked(True)
-                        container.setStyleSheet(
-                            "background-color: #E8F0FE; "
-                            "border: 2px solid #1A73E8; "
-                            "border-radius: 8px; "
-                            "min-height: 50px;"
-                        )
-            elif is_true_false:
-                # 判断题答案：A=正确，B=错误
-                btn_index = 0 if selected == "A" else 1
-                if 0 <= btn_index < len(self.option_buttons):
-                    self.option_buttons[btn_index][0].setChecked(True)
-            elif is_fill:
-                # 填空题答案
-                if hasattr(self, 'fill_input'):
-                    self.fill_input.setText(selected)
-            else:
-                # 单选题答案
-                for btn, container, letter in self.option_buttons:
-                    if letter == selected:
-                        btn.setChecked(True)
-                        container.setStyleSheet(
-                            "background-color: #E8F0FE; "
-                            "border: 2px solid #1A73E8; "
-                            "border-radius: 8px; "
-                            "min-height: 50px;"
-                        )
-                        break
-
             if self.session_submitted:
+                # 已提交答案：显示正确答案和解析
                 is_correct = self.answer_results.get(index, False)
+                correct_answer = self.current_question.answer.upper()
+
+                if is_multi and isinstance(selected, list):
+                    # 多选题答案
+                    for btn, container, letter in self.option_buttons:
+                        if letter in correct_answer.replace(',', '').split(''):
+                            # 正确答案显示绿色
+                            container.setStyleSheet(
+                                "background-color: #E8F5E9; "
+                                "border: 2px solid #4CAF50; "
+                                "border-radius: 8px; "
+                                "min-height: 50px;"
+                            )
+                        elif letter in selected:
+                            # 用户选错的显示红色
+                            container.setStyleSheet(
+                                "background-color: #FFEBEE; "
+                                "border: 2px solid #F44336; "
+                                "border-radius: 8px; "
+                                "min-height: 50px;"
+                            )
+                elif is_true_false:
+                    # 判断题
+                    correct_btn_index = 0 if correct_answer == "A" else 1
+                    user_btn_index = 0 if selected == "A" else 1
+                    if 0 <= correct_btn_index < len(self.option_buttons):
+                        self.option_buttons[correct_btn_index][1].setStyleSheet(
+                            "background-color: #E8F5E9; "
+                            "border: 2px solid #4CAF50; "
+                            "border-radius: 8px; "
+                            "min-height: 50px;"
+                        )
+                    if user_btn_index != correct_btn_index and 0 <= user_btn_index < len(self.option_buttons):
+                        self.option_buttons[user_btn_index][1].setStyleSheet(
+                            "background-color: #FFEBEE; "
+                            "border: 2px solid #F44336; "
+                            "border-radius: 8px; "
+                            "min-height: 50px;"
+                        )
+                elif is_fill:
+                    # 填空题
+                    if hasattr(self, 'fill_input'):
+                        self.fill_input.setText(selected)
+                    # 填空题答案比较复杂，暂时只显示正确答案
+                else:
+                    # 单选题答案
+                    for btn, container, letter in self.option_buttons:
+                        if letter == correct_answer:
+                            # 正确答案显示绿色
+                            container.setStyleSheet(
+                                "background-color: #E8F5E9; "
+                                "border: 2px solid #4CAF50; "
+                                "border-radius: 8px; "
+                                "min-height: 50px;"
+                            )
+                        elif letter == selected:
+                            # 用户选错的显示红色
+                            container.setStyleSheet(
+                                "background-color: #FFEBEE; "
+                                "border: 2px solid #F44336; "
+                                "border-radius: 8px; "
+                                "min-height: 50px;"
+                            )
+
+                # 显示结果状态
                 if is_correct:
                     self.answer_status_label.setText("✓ 回答正确")
                     self.answer_status_label.setStyleSheet("color: #2e7d32; font-weight: bold;")
                 else:
-                    correct = self.current_question.answer.upper()
-                    self.answer_status_label.setText(f"✗ 正确答案：{correct}")
+                    self.answer_status_label.setText(f"✗ 你的答案：{selected} | 正确答案：{correct_answer}")
                     self.answer_status_label.setStyleSheet("color: #c62828; font-weight: bold;")
+
+                # 显示解析
+                if self.current_question.explanation:
+                    self.explanation_label.setText(f"<b>解析：</b>{self.current_question.explanation}")
+                    self.explanation_label.setVisible(True)
+                else:
+                    self.explanation_label.setVisible(False)
+
+                self.result_frame.setVisible(True)
             else:
+                # 未提交答案：只显示用户选择
+                if is_multi and isinstance(selected, list):
+                    # 多选题答案
+                    for btn, container, letter in self.option_buttons:
+                        if letter in selected:
+                            btn.setChecked(True)
+                            container.setStyleSheet(
+                                "background-color: #E8F0FE; "
+                                "border: 2px solid #1A73E8; "
+                                "border-radius: 8px; "
+                                "min-height: 50px;"
+                            )
+                elif is_true_false:
+                    # 判断题答案：A=正确，B=错误
+                    btn_index = 0 if selected == "A" else 1
+                    if 0 <= btn_index < len(self.option_buttons):
+                        self.option_buttons[btn_index][0].setChecked(True)
+                elif is_fill:
+                    # 填空题答案
+                    if hasattr(self, 'fill_input'):
+                        self.fill_input.setText(selected)
+                else:
+                    # 单选题答案
+                    for btn, container, letter in self.option_buttons:
+                        if letter == selected:
+                            btn.setChecked(True)
+                            container.setStyleSheet(
+                                "background-color: #E8F0FE; "
+                                "border: 2px solid #1A73E8; "
+                                "border-radius: 8px; "
+                                "min-height: 50px;"
+                            )
+                            break
+
                 ans_text = selected if isinstance(selected, str) else ','.join(selected)
                 self.answer_status_label.setText(f"已选择 {ans_text}")
                 self.answer_status_label.setStyleSheet("color: #1976d2;")
+                self.result_frame.setVisible(False)
         else:
+            # 未作答
+            if self.session_submitted:
+                # 已提交答案但未作答：显示正确答案
+                correct_answer = self.current_question.answer.upper()
+                self.answer_status_label.setText(f"⚪ 未作答 | 正确答案：{correct_answer}")
+                self.answer_status_label.setStyleSheet("color: #5F6368; font-weight: bold;")
+
+                # 显示正确答案的选项
+                if is_multi:
+                    # 多选题
+                    correct_letters = correct_answer.replace(',', '').split('')
+                    for btn, container, letter in self.option_buttons:
+                        if letter in correct_letters:
+                            container.setStyleSheet(
+                                "background-color: #E8F5E9; "
+                                "border: 2px solid #4CAF50; "
+                                "border-radius: 8px; "
+                                "min-height: 50px;"
+                            )
+                elif is_true_false:
+                    correct_btn_index = 0 if correct_answer == "A" else 1
+                    if 0 <= correct_btn_index < len(self.option_buttons):
+                        self.option_buttons[correct_btn_index][1].setStyleSheet(
+                            "background-color: #E8F5E9; "
+                            "border: 2px solid #4CAF50; "
+                            "border-radius: 8px; "
+                            "min-height: 50px;"
+                        )
+                elif is_fill:
+                    pass  # 填空题暂时不处理
+                else:
+                    # 单选题
+                    for btn, container, letter in self.option_buttons:
+                        if letter == correct_answer:
+                            container.setStyleSheet(
+                                "background-color: #E8F5E9; "
+                                "border: 2px solid #4CAF50; "
+                                "border-radius: 8px; "
+                                "min-height: 50px;"
+                            )
+                            break
+
+                # 显示解析
+                if self.current_question.explanation:
+                    self.explanation_label.setText(f"<b>解析：</b>{self.current_question.explanation}")
+                    self.explanation_label.setVisible(True)
+                else:
+                    self.explanation_label.setVisible(False)
+
+                self.result_frame.setVisible(True)
+            else:
+                # 未提交答案
+                self.answer_status_label.setText("")
+                self.result_frame.setVisible(False)
+
             # 错题模式：只显示上次答案，不显示正确答案
             if self.practice_mode == 'wrong' and self.current_question:
                 last_record = self.practice_service.get_question_record(self.current_question.id)
                 if last_record and last_record.user_answer:
                     self.answer_status_label.setText(f"上次答案：{last_record.user_answer}")
                     self.answer_status_label.setStyleSheet("color: #5F6368; font-weight: 500;")
-                else:
-                    self.answer_status_label.setText("")
-            else:
-                self.answer_status_label.setText("")
 
         is_marked = self.current_question.id in self.marked_questions
         self.mark_btn.setChecked(is_marked)
@@ -1872,40 +1999,6 @@ class QuestionWidget(QWidget):
         """从汇总对话框点击题号"""
         self.current_index = index
         self._show_question(index)
-
-        # 显示该题的解析
-        question = self.questions[index]
-
-        # 检查是否已作答
-        if index in self.user_answers:
-            # 已作答：显示正确/错误状态
-            if index in self.answer_results:
-                is_correct = self.answer_results[index]
-
-                if is_correct:
-                    self.result_label.setText("✅ 回答正确！")
-                    self.result_label.setStyleSheet("color: #2e7d32; font-size: 16px;")
-                else:
-                    correct = question.answer.upper()
-                    self.result_label.setText(f"❌ 回答错误！正确答案：{correct}")
-                    self.result_label.setStyleSheet("color: #c62828; font-size: 16px;")
-            else:
-                # 已作答但未提交（理论上不应该发生）
-                self.result_label.setText("⚠️ 已作答但未提交")
-                self.result_label.setStyleSheet("color: #F9AB00; font-size: 16px;")
-        else:
-            # 未作答：显示"未作答"状态
-            self.result_label.setText(f"⚪ 未作答 | 正确答案：{question.answer.upper()}")
-            self.result_label.setStyleSheet("color: #5F6368; font-size: 16px;")
-
-        # 显示解析
-        if question.explanation:
-            self.explanation_label.setText(f"<b>解析：</b>{question.explanation}")
-            self.explanation_label.setVisible(True)
-        else:
-            self.explanation_label.setVisible(False)
-
-        self.result_frame.setVisible(True)
     
     def _show_info_dialog(self, title: str, message: str):
         """显示信息对话框 - 使用 QDialog 代替 QMessageBox 避免 Windows 闪烁"""
@@ -1953,18 +2046,20 @@ class QuestionWidget(QWidget):
 
     def _next_question(self):
         """下一题 - 支持加载下一批次"""
+        # 已提交答案后，只允许在当前批次内导航
+        if self.session_submitted:
+            if self.current_index < len(self.questions) - 1:
+                self.current_index += 1
+                self._show_question(self.current_index)
+            return
+
         if self.current_index < len(self.questions) - 1:
             self.current_index += 1
             self._show_question(self.current_index)
         elif self.practice_mode != 'wrong' and self.all_questions:
             # 到达当前批次末尾，检查是否有下一批
-            next_offset = self.current_offset + len(self.questions)
-            if next_offset < len(self.all_questions):
-                # 加载下一批
-                self._load_next_batch(next_offset)
-            else:
-                # 已经是最后一题
-                self._show_info_dialog("提示", "已经是最后一题了，点击提交答案结束练习")
+            # 注意：不自动加载新批次，等待用户手动操作
+            self._show_info_dialog("提示", "已是当前批次最后一题，请点击'提交答案'或'重新开始'")
 
     def _load_next_batch(self, offset: int):
         """加载下一批题目"""
@@ -1992,6 +2087,13 @@ class QuestionWidget(QWidget):
     
     def _prev_question(self):
         """上一题 - 支持加载上一批次"""
+        # 已提交答案后，只在当前批次内导航
+        if self.session_submitted:
+            if self.current_index > 0:
+                self.current_index -= 1
+                self._show_question(self.current_index)
+            return
+
         if self.current_index > 0:
             self.current_index -= 1
             self._show_question(self.current_index)
