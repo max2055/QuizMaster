@@ -30,14 +30,13 @@ jobs:
 
     - name: 打包应用程序
       run: |
-        pyinstaller --clean 逢考必过.spec
+        pyinstaller --clean QuizMaster.spec
 
     - name: 准备分发文件
       run: |
         mkdir QuizMaster_分发版
         copy dist\QuizMaster.exe QuizMaster_分发版\
         copy quizmaster.db QuizMaster_分发版\
-        copy README_用户说明.txt QuizMaster_分发版\
 
     - name: 压缩打包结果
       run: |
