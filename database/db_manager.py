@@ -34,6 +34,7 @@ class DatabaseManager:
         self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self._create_tables()
+        self._init_default_data()
     
     @contextmanager
     def get_cursor(self):
@@ -122,6 +123,43 @@ class DatabaseManager:
                     UNIQUE(question_id)
                 )
             """)
+
+            # 初始化默认数据
+            self._init_default_data()
+
+    def _init_default_data(self):
+        """初始化默认数据 - 设置单选题起始进度为第 361 题"""
+        with self.get_cursor() as cursor:
+            # 检查是否已初始化过（通过检查是否有单选题的答题记录）
+            cursor.execute("""
+                SELECT COUNT(*) FROM practice_records pr
+                JOIN questions q ON pr.question_id = q.id
+                WHERE q.question_type = '单选'
+            """)
+            if cursor.fetchone()[0] > 0:
+                # 已有答题记录，跳过初始化
+                return
+
+            # 获取单选题分类 ID
+            cursor.execute("SELECT id FROM categories WHERE name LIKE '%单选%'")
+            row = cursor.fetchone()
+            if row:
+                category_id = row[0]
+                # 获取前 360 道单选题的 ID
+                cursor.execute("""
+                    SELECT id FROM questions
+                    WHERE category_id = ? AND question_type = '单选'
+                    ORDER BY id LIMIT 360
+                """, (category_id,))
+                question_ids = cursor.fetchall()
+
+                # 插入答题记录（标记为已练习，但不记录具体答案）
+                for q in question_ids:
+                    cursor.execute("""
+                        INSERT INTO practice_records
+                        (question_id, user_answer, is_correct, time_spent, is_marked)
+                        VALUES (?, '', 0, 0, 0)
+                    """, (q[0],))
     
     def execute(self, query: str, params: tuple = None):
         """执行 SQL 查询"""
