@@ -1427,6 +1427,9 @@ class QuestionWidget(QWidget):
         if index < 0 or index >= len(self.questions):
             return
 
+        # 清除自动跳转标记（换题时重置）
+        self._pending_auto_next = False
+
         self.current_question = self.questions[index]
         # 显示序号（连续编号）和题目内容
         serial = self.current_question.serial_number or (index + 1)
@@ -1872,8 +1875,17 @@ class QuestionWidget(QWidget):
         self._update_answer_card()
 
         # 自动下一题功能 - 多选题不自动跳转（需要时间选择多个选项）
+        # 只有当当前题目从未作答变为已作答时才启动定时器，防止快速切换选项导致多次跳转
         if self.auto_next and not self.session_submitted and not is_multi:
-            QTimer.singleShot(self.auto_next_delay, self._next_question)
+            # 只有当之前未作答时才启动定时器
+            if not hasattr(self, '_pending_auto_next') or not self._pending_auto_next:
+                self._pending_auto_next = True
+                QTimer.singleShot(self.auto_next_delay, self._clear_pending_auto_next)
+                QTimer.singleShot(self.auto_next_delay, self._next_question)
+
+    def _clear_pending_auto_next(self):
+        """清除待处理的自动跳转标记"""
+        self._pending_auto_next = False
 
     def _on_fill_text_changed(self):
         """填空题文本变化处理"""
