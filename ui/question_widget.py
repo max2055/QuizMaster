@@ -1358,6 +1358,10 @@ class QuestionWidget(QWidget):
         self.result_frame.setVisible(False)
         self.explanation_label.clear()
 
+        # 清空答案状态标签
+        self.answer_status_label.setText("")
+        self.answer_status_label.setStyleSheet("")
+
     # 搜索文本属性（由主窗口设置）
     search_text = ''
 
