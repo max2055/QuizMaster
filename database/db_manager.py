@@ -128,7 +128,7 @@ class DatabaseManager:
             self._init_default_data()
 
     def _init_default_data(self):
-        """初始化默认数据 - 设置单选题起始进度为第 361 题"""
+        """初始化默认数据 - 设置单选题起始进度为第 441 题"""
         with self.get_cursor() as cursor:
             # 检查是否已初始化过（通过检查是否有单选题的答题记录）
             cursor.execute("""
@@ -145,11 +145,11 @@ class DatabaseManager:
             row = cursor.fetchone()
             if row:
                 category_id = row[0]
-                # 获取前 360 道单选题的 ID
+                # 获取前 440 道单选题的 ID
                 cursor.execute("""
                     SELECT id FROM questions
                     WHERE category_id = ? AND question_type = '单选'
-                    ORDER BY id LIMIT 360
+                    ORDER BY id LIMIT 440
                 """, (category_id,))
                 question_ids = cursor.fetchall()
 
