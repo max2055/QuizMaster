@@ -1914,23 +1914,31 @@ class QuestionWidget(QWidget):
         self._update_progress()
         self._update_answer_card()
     
-    def _submit_all_answers(self):
-        """统一提交所有答案"""
+    def _submit_all_answers(self, skip_confirm: bool = False):
+        """统一提交所有答案
+
+        Args:
+            skip_confirm: 是否跳过确认对话框（默认为 False）
+        """
         if not self.questions or self.session_submitted:
             return
 
         # 检查是否全部作答
         unanswered = [i+1 for i in range(len(self.questions)) if i not in self.user_answers]
 
-        if unanswered:
+        if skip_confirm:
+            # 直接提交，不显示确认对话框
+            self._do_submit_all()
+        elif unanswered:
             message = f"你还有 {len(unanswered)} 道题未作答，确定要提交吗？"
+            confirmed = self._show_confirmation_dialog("确认提交", message)
+            if confirmed:
+                self._do_submit_all()
         else:
             message = "所有题目已作答，确定提交？"
-
-        confirmed = self._show_confirmation_dialog("确认提交", message)
-
-        if confirmed:
-            self._do_submit_all()
+            confirmed = self._show_confirmation_dialog("确认提交", message)
+            if confirmed:
+                self._do_submit_all()
     
     def _do_submit_all(self):
         """执行统一提交"""
@@ -2077,7 +2085,8 @@ class QuestionWidget(QWidget):
                 f"已完成当前批次 {len(self.questions)} 道题目的练习。\n\n是否立即提交答案？"
             )
             if confirmed:
-                self._submit_all_answers()
+                # 用户已确认过，跳过提交确认对话框
+                self._submit_all_answers(skip_confirm=True)
 
     def _load_next_batch(self, offset: int):
         """加载下一批题目"""
