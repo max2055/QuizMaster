@@ -218,12 +218,16 @@ class PracticeService:
         return [PracticeSession.from_row(row) for row in rows]
 
     def get_last_practiced_question(self, category_id: Optional[int], question_type: Optional[str]) -> Optional[int]:
-        """获取某分类/题型下最后一次练习的题目 ID（用于计算下次起始位置）"""
+        """获取某分类/题型下顺序练习的最后一次题目 ID（用于计算下次起始位置）
+
+        注意：只查询顺序练习模式 (sequence) 的记录，不包括错题练习等其他模式
+        """
         query = """
             SELECT pr.question_id
             FROM practice_records pr
             JOIN questions q ON pr.question_id = q.id
-            WHERE 1=1
+            JOIN practice_sessions ps ON pr.practice_session_id = ps.id
+            WHERE ps.mode = 'sequence'
         """
         params = []
 
@@ -236,7 +240,7 @@ class PracticeService:
             params.append(question_type)
 
         query += """
-            ORDER BY pr.practice_session_id DESC, pr.question_id DESC
+            ORDER BY ps.id DESC, pr.question_id DESC
             LIMIT 1
         """
 
