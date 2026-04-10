@@ -53,11 +53,22 @@ class PracticeService:
             FROM questions q
             JOIN wrong_questions w ON q.id = w.question_id
             WHERE w.mastered = 0
-            ORDER BY w.wrong_count DESC, w.last_wrong_at ASC
+            ORDER BY q.id
             LIMIT ?
         """
         rows = self.db.fetchall(query, (limit,))
-        return [Question.from_row(row) for row in rows]
+        questions = [Question.from_row(row) for row in rows]
+
+        # 为错题设置 serial_number 为原始题号（按题目 ID 排序后的顺序）
+        # 获取所有题目并按 ID 排序，确定每道题的序号
+        all_query = "SELECT id FROM questions ORDER BY id"
+        all_rows = self.db.fetchall(all_query)
+        id_to_serial = {row['id']: idx + 1 for idx, row in enumerate(all_rows)}
+
+        for q in questions:
+            q.serial_number = id_to_serial.get(q.id, q.id)
+
+        return questions
     
     # ========== 练习会话管理 ==========
     

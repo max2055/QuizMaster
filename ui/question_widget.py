@@ -1244,9 +1244,6 @@ class QuestionWidget(QWidget):
                 self.questions = self.practice_service.get_wrong_questions(limit=1000)
                 self.all_questions = self.questions
                 self.current_offset = 0
-                # 错题模式下重新编号（从 1 开始）
-                for idx, q in enumerate(self.all_questions, start=1):
-                    q.serial_number = idx
             else:
                 # 根据分类名称确定题型过滤
                 question_type_filter = None
