@@ -1354,6 +1354,10 @@ class QuestionWidget(QWidget):
             container.deleteLater()
         self.option_buttons.clear()
 
+        # 隐藏解析区域
+        self.result_frame.setVisible(False)
+        self.explanation_label.clear()
+
     # 搜索文本属性（由主窗口设置）
     search_text = ''
 
@@ -2063,9 +2067,13 @@ class QuestionWidget(QWidget):
             self.current_index += 1
             self._show_question(self.current_index)
         elif self.practice_mode != 'wrong' and self.all_questions:
-            # 到达当前批次末尾，检查是否有下一批
-            # 注意：不自动加载新批次，等待用户手动操作
-            self._show_info_dialog("提示", "已是当前批次最后一题，请点击'提交答案'或'重新开始'")
+            # 到达当前批次末尾，提示是否提交答案
+            confirmed = self._show_confirmation_dialog(
+                "已到达当前批次末尾",
+                f"已完成当前批次 {len(self.questions)} 道题目的练习。\n\n是否立即提交答案？"
+            )
+            if confirmed:
+                self._submit_all_answers()
 
     def _load_next_batch(self, offset: int):
         """加载下一批题目"""
