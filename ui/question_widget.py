@@ -23,10 +23,11 @@ class ResultSummaryDialog(QDialog):
         self.questions = questions or []
         self.user_answers = user_answers or {}
         self.answer_results = answer_results or {}
-        
+
         self.setWindowTitle("练习结果汇总")
         self.setMinimumSize(800, 600)
-        
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
+
         self._init_ui()
     
     def _init_ui(self):
@@ -218,6 +219,11 @@ class ResultSummaryDialog(QDialog):
         """点击题号"""
         self.question_clicked.emit(index)
         self.accept()
+
+    def closeEvent(self, event):
+        """关闭事件 - 只关闭对话框，不关闭父窗口"""
+        self.reject()
+        event.ignore()
 
 
 class QuestionWidget(QWidget):
@@ -1524,7 +1530,7 @@ class QuestionWidget(QWidget):
                 )
 
                 # 点击容器切换选中状态
-                def on_container_click(event, b=btn, c=container):
+                def on_container_click(b=btn, c=container):
                     new_state = not b.isChecked()
                     b.setChecked(new_state)
                     # 更新样式
@@ -1544,8 +1550,9 @@ class QuestionWidget(QWidget):
                         )
                     self._on_option_clicked()
 
-                container.mousePressEvent = on_container_click
-                text_label.mousePressEvent = lambda event, b=btn, c=container: on_container_click(None, b=b, c=c)
+                container.mousePressEvent = lambda event, b=btn, c=container: (on_container_click(b=b, c=c), event.accept())
+                text_label.mousePressEvent = lambda event, b=btn, c=container: (on_container_click(b=b, c=c), event.accept())
+                letter_label.mousePressEvent = lambda event, b=btn, c=container: (on_container_click(b=b, c=c), event.accept())
 
                 self.option_buttons.append((btn, container, opt_letter))
                 self.options_layout.addWidget(container)
