@@ -1309,6 +1309,10 @@ class QuestionWidget(QWidget):
                     else:
                         self.current_offset = 0
 
+                    # 如果已到达末尾（全部做完），重置从头开始
+                    if self.current_offset >= len(self.all_questions):
+                        self.current_offset = 0
+
                 # 截取当前批次
                 end_index = min(self.current_offset + self.questions_per_session, len(self.all_questions))
                 self.questions = self.all_questions[self.current_offset:end_index]
