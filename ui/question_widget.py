@@ -1516,8 +1516,8 @@ class QuestionWidget(QWidget):
                 text_label.setCursor(Qt.CursorShape.PointingHandCursor)
                 container_layout.addWidget(text_label, 1)
 
-                # 隐藏的 RadioButton 用于状态跟踪
-                btn = QRadioButton()
+                # 隐藏的状态按钮用于跟踪选择 - 单选题用 Radio，多选题用 Checkbox
+                btn = QRadioButton() if not is_multi else QCheckBox()
                 btn.setVisible(False)
                 btn.clicked.connect(self._on_option_clicked)
 
