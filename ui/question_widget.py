@@ -26,7 +26,7 @@ class ResultSummaryDialog(QDialog):
 
         self.setWindowTitle("练习结果汇总")
         self.setMinimumSize(800, 600)
-        self.setWindowModality(Qt.WindowModality.ApplicationModal)
+        self.setWindowModality(Qt.WindowModality.WindowModal)
 
         self._init_ui()
     
@@ -219,11 +219,6 @@ class ResultSummaryDialog(QDialog):
         """点击题号"""
         self.question_clicked.emit(index)
         self.accept()
-
-    def closeEvent(self, event):
-        """关闭事件 - 只关闭对话框，不关闭父窗口"""
-        self.reject()
-        event.ignore()
 
 
 class QuestionWidget(QWidget):
