@@ -1910,26 +1910,6 @@ class QuestionWidget(QWidget):
                 QTimer.singleShot(self.auto_next_delay, self._clear_pending_auto_next)
                 QTimer.singleShot(self.auto_next_delay, self._next_question)
 
-        # 多选题答完最后一题时，自动提示提交答案
-        if not self.session_submitted and self.current_index >= len(self.questions) - 1:
-            is_last_answered = self.current_index in self.user_answers
-            all_answered = len(self.user_answers) >= len(self.questions)
-            if is_last_answered and all_answered:
-                if not hasattr(self, '_pending_submit_prompt') or not self._pending_submit_prompt:
-                    self._pending_submit_prompt = True
-                    QTimer.singleShot(500, self._show_submit_prompt)
-
-    def _show_submit_prompt(self):
-        """显示提交答案提示"""
-        self._pending_submit_prompt = False
-        if not self.session_submitted and self.current_index >= len(self.questions) - 1:
-            confirmed = self._show_confirmation_dialog(
-                "已答完所有题目",
-                f"已完成 {len(self.questions)} 道题目的练习。\n\n是否立即提交答案？"
-            )
-            if confirmed:
-                self._submit_all_answers(skip_confirm=True)
-
     def _clear_pending_auto_next(self):
         """清除待处理的自动跳转标记"""
         self._pending_auto_next = False
