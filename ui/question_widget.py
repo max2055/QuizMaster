@@ -26,9 +26,16 @@ class ResultSummaryDialog(QDialog):
 
         self.setWindowTitle("练习结果汇总")
         self.setMinimumSize(800, 600)
-        self.setWindowModality(Qt.WindowModality.WindowModal)
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
+        self.setAttribute(Qt.WidgetAttribute.WA_QuitOnClose, False)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, False)
 
         self._init_ui()
+
+    def closeEvent(self, event):
+        """拦截关闭事件，只关闭对话框不关闭整个程序"""
+        self.hide()
+        event.accept()
     
     def _init_ui(self):
         layout = QVBoxLayout()
