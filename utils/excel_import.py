@@ -49,30 +49,46 @@ class ExcelImporter:
         question_text = self._get_value(row, '题目')
         if not question_text:
             return None
-        
-        # 构建选项
+
+        # 构建选项 - 支持两种格式：
+        # 1. 分列格式：选项A, 选项B, 选项C...
+        # 2. 单列格式：所有选项在一个单元格中，用换行分隔，如 "A.xxx\nB.xxx"
         options = {}
+
+        # 先尝试分列格式
         for opt in ['A', 'B', 'C', 'D', 'E', 'F']:
             opt_key = f'选项{opt}'
             opt_value = self._get_value(row, opt_key)
             if opt_value:
                 options[opt] = opt_value
-        
+
+        # 如果分列格式没有选项，尝试单列格式
+        if not options:
+            opt_all = self._get_value(row, '选项')
+            if opt_all:
+                import re
+                # 按换行分割，匹配 "A.xxx" 格式
+                for line in opt_all.split('\n'):
+                    line = line.strip()
+                    match = re.match(r'^([A-F])\.\s*(.+)', line)
+                    if match:
+                        options[match.group(1)] = match.group(2)
+
         # 获取答案
         answer = self._get_value(row, '答案')
         if not answer:
             return None
-        
+
         # 获取其他字段
         question_type = self._get_value(row, '题型') or self._detect_question_type(options, answer)
         explanation = self._get_value(row, '解析') or ''
         category = self._get_value(row, '分类') or '默认'
         difficulty = self._get_value(row, '难度') or 'medium'
-        
+
         # 处理标签
         tags_str = self._get_value(row, '标签') or ''
         tags = [t.strip() for t in tags_str.split(',') if t.strip()] if tags_str else []
-        
+
         return {
             'question_text': str(question_text),
             'options': json.dumps(options),
