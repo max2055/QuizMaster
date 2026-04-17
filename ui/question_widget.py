@@ -1533,7 +1533,6 @@ class QuestionWidget(QWidget):
                 def on_container_click(b=btn, c=container):
                     new_state = not b.isChecked()
                     b.setChecked(new_state)
-                    # 更新样式
                     if new_state:
                         c.setStyleSheet(
                             "background-color: #E8F0FE; "
@@ -1550,9 +1549,16 @@ class QuestionWidget(QWidget):
                         )
                     self._on_option_clicked()
 
-                container.mousePressEvent = lambda event, b=btn, c=container: (on_container_click(b=b, c=c), event.accept())
-                text_label.mousePressEvent = lambda event, b=btn, c=container: (on_container_click(b=b, c=c), event.accept())
-                letter_label.mousePressEvent = lambda event, b=btn, c=container: (on_container_click(b=b, c=c), event.accept())
+                def make_container_handler(b, c):
+                    def handler(event):
+                        on_container_click(b=b, c=c)
+                        event.accept()
+                    return handler
+
+                handler = make_container_handler(btn, container)
+                container.mousePressEvent = handler
+                text_label.mousePressEvent = handler
+                letter_label.mousePressEvent = handler
 
                 self.option_buttons.append((btn, container, opt_letter))
                 self.options_layout.addWidget(container)
