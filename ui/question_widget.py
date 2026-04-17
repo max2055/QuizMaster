@@ -1584,7 +1584,7 @@ class QuestionWidget(QWidget):
                 if is_multi and isinstance(selected, list):
                     # 多选题答案
                     for btn, container, letter in self.option_buttons:
-                        if letter in correct_answer.replace(',', '').split(''):
+                        if letter in list(correct_answer.replace(',', '')):
                             # 正确答案显示绿色
                             container.setStyleSheet(
                                 "background-color: #E8F5E9; "
@@ -1709,7 +1709,7 @@ class QuestionWidget(QWidget):
                 # 显示正确答案的选项
                 if is_multi:
                     # 多选题
-                    correct_letters = correct_answer.replace(',', '').split('')
+                    correct_letters = list(correct_answer.replace(',', ''))
                     for btn, container, letter in self.option_buttons:
                         if letter in correct_letters:
                             container.setStyleSheet(
