@@ -1247,9 +1247,23 @@ class QuestionWidget(QWidget):
             self.current_category_id = category_id
             self.current_category_name = category_name
 
-            # 错题模式下不受分页和题型过滤限制
+            # 错题模式下不受分页限制，但需要按题型过滤
             if self.practice_mode == 'wrong':
-                self.questions = self.practice_service.get_wrong_questions(limit=1000)
+                # 根据分类名称确定题型过滤
+                question_type_filter = None
+                if category_name:
+                    clean_name = category_name.replace('📚', '').replace('📖', '').strip()
+                    if '单选' in clean_name:
+                        question_type_filter = '单选'
+                    elif '多选' in clean_name:
+                        question_type_filter = '多选'
+                    elif '判断' in clean_name:
+                        question_type_filter = '判断'
+                    elif '填空' in clean_name:
+                        question_type_filter = '填空'
+
+                self.questions = self.practice_service.get_wrong_questions(
+                    limit=1000, question_type=question_type_filter)
                 self.all_questions = self.questions
                 self.current_offset = 0
             else:

@@ -203,7 +203,7 @@ class SettingsDialog(QDialog):
         quantity_layout.addWidget(quantity_label)
 
         self.quantity_spin = QSpinBox()
-        self.quantity_spin.setRange(10, 500)
+        self.quantity_spin.setRange(5, 500)
         self.quantity_spin.setSingleStep(10)
         self.quantity_spin.setValue(self.settings.get('questions_per_session', 50))
         self.quantity_spin.setFixedWidth(90)

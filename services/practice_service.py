@@ -46,24 +46,49 @@ class PracticeService:
         rows = self.db.fetchall(query, tuple(params))
         return [Question.from_row(row) for row in rows]
     
-    def get_wrong_questions(self, limit: int = 50) -> List[Question]:
-        """获取错题本中的题目"""
+    def get_wrong_questions(self, limit: int = 50, question_type: str = None) -> List[Question]:
+        """获取错题本中的题目
+
+        Args:
+            limit: 获取数量限制
+            question_type: 题型过滤（单选/多选/判断/填空），None 表示不过滤
+        """
         query = """
             SELECT q.*, w.wrong_count, w.last_wrong_at
             FROM questions q
             JOIN wrong_questions w ON q.id = w.question_id
             WHERE w.mastered = 0
-            ORDER BY q.id
-            LIMIT ?
         """
-        rows = self.db.fetchall(query, (limit,))
+        params = [limit]
+
+        if question_type:
+            query += " AND q.question_type = ?"
+            params.insert(0, question_type)
+
+        query += " ORDER BY q.id LIMIT ?"
+
+        rows = self.db.fetchall(query, tuple(params))
         questions = [Question.from_row(row) for row in rows]
 
-        # 为错题设置 serial_number 为原始题号（按题目 ID 排序后的顺序）
-        # 获取所有题目并按 ID 排序，确定每道题的序号
-        all_query = "SELECT id FROM questions ORDER BY id"
-        all_rows = self.db.fetchall(all_query)
-        id_to_serial = {row['id']: idx + 1 for idx, row in enumerate(all_rows)}
+        # 为错题设置 serial_number：按题型分组计算题号
+        # 如果指定了题型，只计算该题型内的序号；否则按各自题型分别计算
+        if question_type:
+            # 按指定题型计算序号
+            all_query = "SELECT id FROM questions WHERE question_type = ? ORDER BY id"
+            all_rows = self.db.fetchall(all_query, (question_type,))
+            id_to_serial = {row['id']: idx + 1 for idx, row in enumerate(all_rows)}
+        else:
+            # 按题型分组计数
+            all_query = "SELECT id, question_type FROM questions ORDER BY id"
+            all_rows = self.db.fetchall(all_query)
+            type_counters = {}
+            id_to_serial = {}
+            for row in all_rows:
+                qtype = row['question_type'] or 'unknown'
+                if qtype not in type_counters:
+                    type_counters[qtype] = 0
+                type_counters[qtype] += 1
+                id_to_serial[row['id']] = type_counters[qtype]
 
         for q in questions:
             q.serial_number = id_to_serial.get(q.id, q.id)
